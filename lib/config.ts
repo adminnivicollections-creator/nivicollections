@@ -14,7 +14,6 @@ export const SHIPPING = {
   /** Orders at or above this cart subtotal ship free. */
   freeAbovePaise: 150_000, // ₹1,500
   /** Charged when the subtotal is below the threshold. */
-  // TODO(harsha): confirm this amount — currently a placeholder.
   flatRatePaise: 9_900, // ₹99
 };
 
