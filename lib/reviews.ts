@@ -9,24 +9,35 @@ export type ReviewWithReviewer = Review & { reviewerName: string };
 export type ReviewSummary = { average: number; count: number };
 
 // Reads with the admin client, not the RLS-scoped one: the reviews row
-// itself is public, but a naive embedded join to `profiles` would silently
-// return null for every reviewer except the current user, since profiles is
-// owner-only. Only the first name is ever sent to the client.
+// itself is public, but reading another user's profile row is not, since
+// profiles is owner-only. Fetched as two queries rather than an embed:
+// reviews.user_id and profiles.id both reference auth.users independently,
+// with no FK directly between them, so PostgREST cannot auto-join the two.
+// Only the first name is ever sent to the client.
 export async function getProductReviews(
   productId: string,
 ): Promise<ReviewWithReviewer[]> {
-  const { data, error } = await createAdminClient()
+  const admin = createAdminClient();
+  const { data: reviews, error } = await admin
     .from("reviews")
-    .select("*, profiles(full_name)")
+    .select("*")
     .eq("product_id", productId)
-    .order("created_at", { ascending: false })
-    .overrideTypes<(Review & { profiles: { full_name: string } | null })[]>();
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
+  if (reviews.length === 0) return [];
 
-  return data.map(({ profiles, ...review }) => ({
+  const { data: profiles, error: profilesError } = await admin
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", [...new Set(reviews.map((r) => r.user_id))]);
+  if (profilesError) throw profilesError;
+
+  const nameById = new Map(profiles.map((p) => [p.id, p.full_name]));
+
+  return reviews.map((review) => ({
     ...review,
-    reviewerName: firstName(profiles?.full_name) ?? "Verified buyer",
+    reviewerName: firstName(nameById.get(review.user_id)) ?? "Verified buyer",
   }));
 }
 
