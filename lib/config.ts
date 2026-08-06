@@ -1,0 +1,34 @@
+// Every brand-level value the storefront renders lives here, so changing the
+// name or the shipping rule is one edit rather than a grep.
+
+export const BRAND = {
+  // TODO(harsha): replace with the real business name — used in the header
+  // wordmark, page titles, footer and order emails.
+  name: "NIVI",
+  legalName: "Nivi Collections",
+  email: "hello@nivicollections.com",
+  supportHours: "Mon to Sat, 10am to 6pm IST",
+};
+
+export const SHIPPING = {
+  /** Orders at or above this cart subtotal ship free. */
+  freeAbovePaise: 150_000, // ₹1,500
+  /** Charged when the subtotal is below the threshold. */
+  // TODO(harsha): confirm this amount — currently a placeholder.
+  flatRatePaise: 9_900, // ₹99
+};
+
+/** Shipping charge for a given subtotal, in paise. */
+export function shippingFor(subtotalPaise: number): number {
+  if (subtotalPaise <= 0) return 0;
+  return subtotalPaise >= SHIPPING.freeAbovePaise ? 0 : SHIPPING.flatRatePaise;
+}
+
+/** Paise to a display string: 849000 -> "₹ 8,490.00 INR" */
+export function formatINR(paise: number): string {
+  const rupees = paise / 100;
+  return `₹ ${rupees.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} INR`;
+}
