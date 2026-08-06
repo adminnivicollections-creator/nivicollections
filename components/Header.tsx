@@ -19,11 +19,11 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/95 backdrop-blur">
-      <div className="bg-ink py-2 text-center text-[11px] uppercase tracking-[0.25em] text-cream">
+      <div className="bg-ink py-1.5 text-center text-[10px] uppercase tracking-[0.25em] text-cream">
         Free shipping on orders above ₹1,500
       </div>
 
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2">
         <button
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
@@ -42,7 +42,7 @@ export function Header({
             width={1254}
             height={1254}
             priority
-            className="h-20 w-auto md:h-28"
+            className="h-14 w-auto md:h-16"
           />
         </Link>
 
@@ -61,7 +61,7 @@ export function Header({
       </div>
 
       <nav className="hidden border-t border-ink/10 md:block">
-        <ul className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-5 py-4">
+        <ul className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-5 py-2.5">
           {categories.map((c) => (
             <li key={c.slug}>
               <Link
