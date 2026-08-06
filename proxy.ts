@@ -2,9 +2,6 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
-  // The root layout needs the path to decide whether to render shop chrome,
-  // and Server Components cannot read the URL any other way.
-  request.headers.set("x-pathname", request.nextUrl.pathname);
 
   let response = NextResponse.next({ request });
 

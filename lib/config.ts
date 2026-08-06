@@ -1,13 +1,6 @@
 // Every brand-level value the storefront renders lives here, so changing the
 // name or the shipping rule is one edit rather than a grep.
 
-/**
- * While true, the site shows the coming-soon page and hides the shop chrome.
- * Flip by setting NEXT_PUBLIC_SHOP_OPEN=true in Vercel and redeploying — no
- * code change needed on launch day.
- */
-export const COMING_SOON = process.env.NEXT_PUBLIC_SHOP_OPEN !== "true";
-
 export const BRAND = {
   /** Header/footer wordmark. Rendered uppercase with wide letter-spacing. */
   name: "Nivi Collections",

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/config";
+import { NewsletterForm } from "./NewsletterForm";
 import type { Category } from "@/lib/supabase/types";
 
 export function Footer({ categories }: { categories: Category[] }) {
@@ -47,6 +48,10 @@ export function Footer({ categories }: { categories: Category[] }) {
               </Link>
             </li>
           </ul>
+
+          <div className="mt-8">
+            <NewsletterForm />
+          </div>
         </div>
       </div>
 
