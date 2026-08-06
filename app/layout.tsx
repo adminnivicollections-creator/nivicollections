@@ -6,7 +6,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getCategories } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
-import { BRAND } from "@/lib/config";
+import { BRAND, COMING_SOON } from "@/lib/config";
+import { headers } from "next/headers";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -30,10 +31,16 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const supabase = await createClient();
-  const [categories, { data: claims }] = await Promise.all([
+  const [categories, { data: claims }, headerList] = await Promise.all([
     getCategories(),
     supabase.auth.getClaims(),
+    headers(),
   ]);
+
+  // The coming-soon page fills the viewport, so it gets no header or footer.
+  // Every other route keeps the normal chrome, which is how you still reach
+  // /admin and /login before launch. proxy.ts stamps x-pathname.
+  const bare = COMING_SOON && headerList.get("x-pathname") === "/";
 
   return (
     <html
@@ -42,9 +49,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col">
         <CartProvider>
-          <Header categories={categories} signedIn={Boolean(claims?.claims)} />
-          <main className="flex-1">{children}</main>
-          <Footer categories={categories} />
+          {bare ? (
+            children
+          ) : (
+            <>
+              <Header
+                categories={categories}
+                signedIn={Boolean(claims?.claims)}
+              />
+              <main className="flex-1">{children}</main>
+              <Footer categories={categories} />
+            </>
+          )}
         </CartProvider>
       </body>
     </html>

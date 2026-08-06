@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { getCategories, getProducts } from "@/lib/catalog";
-import { imageUrl } from "@/lib/config";
+import { imageUrl, COMING_SOON } from "@/lib/config";
 import { ProductCard } from "@/components/ProductCard";
+import { ComingSoon } from "./ComingSoon";
 
 export const revalidate = 300;
 
 export default async function Home() {
+  // Set NEXT_PUBLIC_SHOP_OPEN=true in Vercel to reveal the storefront.
+  if (COMING_SOON) return <ComingSoon />;
+
   const [categories, featured] = await Promise.all([
     getCategories(),
     getProducts({ limit: 8 }),

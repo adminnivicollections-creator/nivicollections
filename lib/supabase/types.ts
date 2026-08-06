@@ -119,6 +119,13 @@ export type OrderItem = {
   qty: number;
 };
 
+export type Subscriber = {
+  id: string;
+  email: string;
+  source: string;
+  created_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -137,6 +144,7 @@ export type Database = {
       addresses: Table<Address>;
       orders: Table<Order>;
       order_items: Table<OrderItem>;
+      subscribers: Table<Subscriber>;
     };
     Views: Record<never, never>;
     Functions: {
