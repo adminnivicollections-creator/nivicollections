@@ -20,6 +20,10 @@ const GROUPS: { label: string; links: { href: string; label: string }[] }[] = [
     ],
   },
   {
+    label: "Site",
+    links: [{ href: "/admin/homepage", label: "Homepage" }],
+  },
+  {
     label: "Engagement",
     links: [
       { href: "/admin/questions", label: "Questions" },

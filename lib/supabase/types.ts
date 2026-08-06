@@ -187,6 +187,12 @@ export type TryonUsage = {
   count: number;
 };
 
+export type HomepageSettings = {
+  id: true;
+  hero_image_path: string | null;
+  updated_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -212,6 +218,7 @@ export type Database = {
       product_questions: Table<ProductQuestion>;
       product_answers: Table<ProductAnswer>;
       tryon_usage: Table<TryonUsage>;
+      homepage_settings: Table<HomepageSettings>;
     };
     Views: Record<never, never>;
     Functions: {

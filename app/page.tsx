@@ -2,15 +2,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { getWishlistProductIds } from "@/lib/wishlist";
+import { getHomepageHeroUrl } from "@/lib/homepage";
 import { imageUrl, BRAND } from "@/lib/config";
 import { ProductCard } from "@/components/ProductCard";
 import { TrustBar } from "@/components/TrustBar";
 
 export default async function Home() {
-  const [categories, products, wishlist] = await Promise.all([
+  const [categories, products, wishlist, customHero] = await Promise.all([
     getCategories(),
     getProducts({ limit: 8 }),
     getWishlistProductIds(),
+    getHomepageHeroUrl(),
   ]);
 
   const shopHref = categories[0]
@@ -19,16 +21,15 @@ export default async function Home() {
 
   return (
     <>
-      <section className="bg-[#0b0906]">
-        {/*
-          The artwork carries the wordmark, tagline, headline and the four
-          marks, so none of them are repeated in markup below. Rendered
-          contained rather than cropped, so its text survives at every width.
-        */}
+      <section className="relative bg-[#0b0906]">
         <Link href={shopHref} className="block">
           <Image
-            src="/images/nivihomepage.png"
-            alt="Nivi Collections — celebrate every moment in style. Sarees for every occasion."
+            src={customHero ?? "/images/nivihomepage.png"}
+            alt={
+              customHero
+                ? ""
+                : "Nivi Collections — celebrate every moment in style. Sarees for every occasion."
+            }
             width={1774}
             height={887}
             priority
@@ -37,11 +38,26 @@ export default async function Home() {
           />
         </Link>
 
-        {/* Search engines and screen readers need the heading as text, not
-            baked into a picture. */}
-        <h1 className="sr-only">
-          {BRAND.legalName} — {BRAND.tagline}
-        </h1>
+        {/* The bundled banner already has its wordmark, tagline and headline
+            painted into the artwork. A custom upload from /admin/homepage is
+            just a photo, so it needs this text laid over it instead —
+            otherwise swapping the photo would silently delete the headline. */}
+        {customHero && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-t from-[#0b0906]/80 via-[#0b0906]/20 to-[#0b0906]/50 px-6 text-center">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-[#c59e5a]">
+              {BRAND.legalName}
+            </p>
+            <h1 className="mt-4 font-serif text-4xl font-light text-[#f3e6cc] sm:text-6xl">
+              {BRAND.tagline}
+            </h1>
+          </div>
+        )}
+
+        {!customHero && (
+          <h1 className="sr-only">
+            {BRAND.legalName} — {BRAND.tagline}
+          </h1>
+        )}
 
         <div className="flex justify-center px-6 pb-16 pt-10">
           <Link
