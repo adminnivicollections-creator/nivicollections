@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { BRAND } from "@/lib/config";
 import type { Category } from "@/lib/supabase/types";
@@ -16,6 +17,9 @@ export function Header({
 }) {
   const { count, hydrated } = useCart();
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const isActiveCategory = (slug: string) =>
+    pathname === `/collections/${slug}`;
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink/10 bg-cream/95 backdrop-blur">
@@ -66,7 +70,10 @@ export function Header({
             <li key={c.slug}>
               <Link
                 href={`/collections/${c.slug}`}
-                className="whitespace-nowrap text-[11px] uppercase tracking-[0.2em] text-ink/80 transition-colors hover:text-gold"
+                aria-current={isActiveCategory(c.slug) ? "page" : undefined}
+                className={`whitespace-nowrap text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-gold ${
+                  isActiveCategory(c.slug) ? "text-gold" : "text-ink/80"
+                }`}
               >
                 {c.name}
               </Link>
@@ -75,6 +82,9 @@ export function Header({
         </ul>
       </nav>
 
+      {/* Account/Sign in and Cart are deliberately left out here — BottomNav
+          already covers both at this exact breakpoint, so repeating them
+          would just be the same link twice. */}
       {open && (
         <nav className="border-t border-ink/10 md:hidden">
           <ul className="flex flex-col px-5 py-3">
@@ -83,21 +93,15 @@ export function Header({
                 <Link
                   href={`/collections/${c.slug}`}
                   onClick={() => setOpen(false)}
-                  className="block py-3 text-[11px] uppercase tracking-[0.2em] text-ink/80"
+                  aria-current={isActiveCategory(c.slug) ? "page" : undefined}
+                  className={`block py-3 text-[11px] uppercase tracking-[0.2em] ${
+                    isActiveCategory(c.slug) ? "text-gold" : "text-ink/80"
+                  }`}
                 >
                   {c.name}
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                href={signedIn ? "/account" : "/login"}
-                onClick={() => setOpen(false)}
-                className="block py-3 text-[11px] uppercase tracking-[0.2em] text-ink/80"
-              >
-                {signedIn ? "Account" : "Sign in"}
-              </Link>
-            </li>
           </ul>
         </nav>
       )}

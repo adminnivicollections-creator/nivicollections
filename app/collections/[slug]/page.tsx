@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getCategoryBySlug, getProducts } from "@/lib/catalog";
 import { getWishlistProductIds } from "@/lib/wishlist";
 import { ProductCard } from "@/components/ProductCard";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -27,7 +28,10 @@ export default async function CollectionPage({
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-16">
-      <h1 className="text-center font-serif text-4xl font-light text-ink">
+      <Breadcrumbs
+        items={[{ label: "Home", href: "/" }, { label: category.name }]}
+      />
+      <h1 className="mt-6 text-center font-serif text-4xl font-light text-ink">
         {category.name}
       </h1>
       <p className="mt-3 text-center text-sm text-ink/60">

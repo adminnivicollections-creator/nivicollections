@@ -13,6 +13,7 @@ import { WishlistHeart } from "@/components/WishlistHeart";
 import { Stars } from "@/components/Stars";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { TryOnWidget } from "@/components/TryOnWidget";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AddToCart } from "./AddToCart";
 import { Reviews } from "./Reviews";
 import { QA } from "./QA";
@@ -50,7 +51,23 @@ export default async function ProductPage({
   return (
     <div className="min-h-dvh bg-[#0b0906] px-5 py-12">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-12 md:grid-cols-2">
+        <Breadcrumbs
+          dark
+          items={[
+            { label: "Home", href: "/" },
+            ...(product.categories
+              ? [
+                  {
+                    label: product.categories.name,
+                    href: `/collections/${product.categories.slug}`,
+                  },
+                ]
+              : []),
+            { label: product.name },
+          ]}
+        />
+
+        <div className="mt-6 grid gap-12 md:grid-cols-2">
           <div className="grid gap-3">
             <div className="relative">
               <ProductMedia
