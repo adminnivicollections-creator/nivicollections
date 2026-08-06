@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { getCategories } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
 import { BRAND } from "@/lib/config";
+import { BottomNav } from "@/components/BottomNav";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -20,6 +21,9 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: {
     default: `${BRAND.legalName} | Handcrafted Indian Occasion Wear`,
     template: `%s | ${BRAND.legalName}`,
@@ -41,6 +45,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     getCategories(),
     supabase.auth.getClaims(),
   ]);
+  const signedIn = Boolean(claims?.claims);
+  const shopHref = categories[0]
+    ? `/collections/${categories[0].slug}`
+    : "/cart";
 
   return (
     <html
@@ -49,9 +57,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col">
         <CartProvider>
-          <Header categories={categories} signedIn={Boolean(claims?.claims)} />
-          <main className="flex-1">{children}</main>
+          <Header categories={categories} signedIn={signedIn} />
+          <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <Footer categories={categories} />
+          <BottomNav shopHref={shopHref} signedIn={signedIn} />
         </CartProvider>
       </body>
     </html>

@@ -32,15 +32,20 @@ export function CheckoutForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discountPaise: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+
   if (!hydrated) return <div className="py-20" aria-busy="true" />;
 
   if (lines.length === 0) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink/60">Your cart is empty.</p>
+        <p className="text-[#f3e6cc]/60">Your cart is empty.</p>
         <Link
           href="/"
-          className="mt-8 inline-block border border-ink px-10 py-4 text-[11px] uppercase tracking-[0.25em]"
+          className="mt-8 inline-block border border-[#c59e5a] px-10 py-4 text-[11px] uppercase tracking-[0.25em] text-[#f3e6cc]"
         >
           Continue shopping
         </Link>
@@ -48,8 +53,33 @@ export function CheckoutForm() {
     );
   }
 
+  const discount = coupon?.discountPaise ?? 0;
   const shipping = shippingFor(subtotalPaise);
-  const total = subtotalPaise + shipping;
+  const total = subtotalPaise - discount + shipping;
+
+  async function applyCoupon() {
+    setCouponError(null);
+    if (!couponInput.trim()) return;
+    setCouponBusy(true);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponInput, subtotalPaise }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCoupon(null);
+        setCouponError(data.error ?? "Could not apply that code.");
+      } else {
+        setCoupon({ code: data.code, discountPaise: data.discountPaise });
+      }
+    } catch {
+      setCouponError("Could not apply that code.");
+    } finally {
+      setCouponBusy(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -72,6 +102,7 @@ export function CheckoutForm() {
       },
       // Only ids and quantities travel; the server prices the order itself.
       items: lines.map((l) => ({ variantId: l.variantId, qty: l.qty })),
+      couponCode: coupon?.code,
     };
 
     try {
@@ -101,7 +132,7 @@ export function CheckoutForm() {
           email: payload.email,
           contact: payload.phone,
         },
-        theme: { color: "#241f1b" },
+        theme: { color: "#c59e5a" },
         handler: () => {
           // The webhook is what actually marks the order paid; this only
           // moves the customer along.
@@ -123,13 +154,15 @@ export function CheckoutForm() {
   }
 
   const field =
-    "mt-1 w-full border border-ink/20 bg-transparent px-4 py-3 text-sm outline-none focus:border-ink";
-  const label = "text-[11px] uppercase tracking-[0.2em] text-ink/60";
+    "mt-1 w-full border border-[#c59e5a]/30 bg-transparent px-4 py-3 text-sm text-[#f3e6cc] outline-none placeholder:text-[#f3e6cc]/30 focus:border-[#c59e5a]";
+  const label = "text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]/60";
 
   return (
     <div className="mt-12 grid gap-16 md:grid-cols-[1fr_20rem]">
       <form onSubmit={onSubmit} className="space-y-5">
-        <h2 className="font-serif text-2xl font-light">Delivery details</h2>
+        <h2 className="font-serif text-2xl font-light text-[#f3e6cc]">
+          Delivery details
+        </h2>
 
         <div>
           <label htmlFor="full_name" className={label}>Full name</label>
@@ -179,30 +212,30 @@ export function CheckoutForm() {
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-700">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
         <button
           type="submit"
           disabled={busy}
-          className="w-full bg-ink py-4 text-[11px] uppercase tracking-[0.25em] text-cream disabled:opacity-40"
+          className="w-full bg-[#c59e5a] py-4 text-[11px] uppercase tracking-[0.25em] text-[#0b0906] disabled:opacity-40"
         >
           {busy ? "Opening payment…" : `Pay ${formatINR(total)}`}
         </button>
-        <p className="text-xs text-ink/40">
+        <p className="text-xs text-[#f3e6cc]/40">
           Payments are handled by Razorpay. Card details never reach this site.
         </p>
       </form>
 
-      <aside className="h-fit border border-ink/10 p-6">
-        <h2 className="text-[11px] uppercase tracking-[0.2em] text-ink/60">
+      <aside className="h-fit border border-[#c59e5a]/20 p-6">
+        <h2 className="text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]/60">
           Your order
         </h2>
         <ul className="mt-5 space-y-4">
           {lines.map((l) => (
-            <li key={l.variantId} className="flex justify-between gap-4 text-sm">
-              <span className="text-ink/70">
+            <li key={l.variantId} className="flex justify-between gap-4 text-sm text-[#f3e6cc]">
+              <span className="text-[#f3e6cc]/70">
                 {l.name}
-                <span className="block text-xs text-ink/40">
+                <span className="block text-xs text-[#f3e6cc]/40">
                   Size {l.size} × {l.qty}
                 </span>
               </span>
@@ -210,16 +243,64 @@ export function CheckoutForm() {
             </li>
           ))}
         </ul>
-        <dl className="mt-6 space-y-2 border-t border-ink/10 pt-4 text-sm">
+        <div className="mt-6 border-t border-[#c59e5a]/20 pt-4">
+          {coupon ? (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[#c59e5a]">{coupon.code} applied</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setCoupon(null);
+                  setCouponInput("");
+                }}
+                className="text-xs text-[#f3e6cc]/50 underline"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <label htmlFor="coupon" className="sr-only">
+                Coupon code
+              </label>
+              <input
+                id="coupon"
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value)}
+                placeholder="Coupon code"
+                className="min-w-0 flex-1 border border-[#c59e5a]/30 bg-transparent px-3 py-2 text-sm uppercase text-[#f3e6cc] outline-none placeholder:text-[#f3e6cc]/30 focus:border-[#c59e5a]"
+              />
+              <button
+                type="button"
+                onClick={applyCoupon}
+                disabled={couponBusy || !couponInput.trim()}
+                className="shrink-0 border border-[#c59e5a] px-4 py-2 text-[11px] uppercase tracking-[0.15em] text-[#f3e6cc] disabled:opacity-40"
+              >
+                {couponBusy ? "…" : "Apply"}
+              </button>
+            </div>
+          )}
+          {couponError && (
+            <p className="mt-2 text-xs text-red-400">{couponError}</p>
+          )}
+        </div>
+
+        <dl className="mt-4 space-y-2 border-t border-[#c59e5a]/20 pt-4 text-sm text-[#f3e6cc]">
           <div className="flex justify-between">
-            <dt className="text-ink/60">Subtotal</dt>
+            <dt className="text-[#f3e6cc]/60">Subtotal</dt>
             <dd>{formatINR(subtotalPaise)}</dd>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-[#c59e5a]">
+              <dt>Discount</dt>
+              <dd>−{formatINR(discount)}</dd>
+            </div>
+          )}
           <div className="flex justify-between">
-            <dt className="text-ink/60">Shipping</dt>
+            <dt className="text-[#f3e6cc]/60">Shipping</dt>
             <dd>{shipping === 0 ? "Free" : formatINR(shipping)}</dd>
           </div>
-          <div className="flex justify-between border-t border-ink/10 pt-2 text-base">
+          <div className="flex justify-between border-t border-[#c59e5a]/20 pt-2 text-base">
             <dt>Total</dt>
             <dd>{formatINR(total)}</dd>
           </div>

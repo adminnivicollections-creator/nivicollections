@@ -110,3 +110,20 @@ export async function getRelatedProducts(
 export function isSoldOut(p: ProductWithMedia): boolean {
   return p.product_variants.every((v) => v.stock <= 0);
 }
+
+export async function getProductsByIds(
+  ids: string[],
+): Promise<ProductWithMedia[]> {
+  if (ids.length === 0) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .in("id", ids)
+    .eq("active", true)
+    .overrideTypes<ProductWithMedia[]>();
+
+  if (error) throw error;
+  return (data ?? []).map(sortMedia);
+}

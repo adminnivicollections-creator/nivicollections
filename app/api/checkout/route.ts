@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createRazorpayOrder } from "@/lib/razorpay";
 import { shippingFor } from "@/lib/config";
+import { validateCoupon } from "@/lib/coupons";
 
 // The browser sends variant ids and quantities only. Names, prices, stock and
 // totals are all read from the database here — a tampered cart cannot change
@@ -30,6 +31,7 @@ const schema = z.object({
     )
     .min(1)
     .max(20),
+  couponCode: z.string().trim().max(40).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  const { email, phone, address, items } = parsed.data;
+  const { email, phone, address, items, couponCode } = parsed.data;
 
   // Collapse duplicate variant ids so a repeated line cannot dodge the stock check.
   const wanted = new Map<string, number>();
@@ -118,8 +120,20 @@ export async function POST(request: NextRequest) {
   }
 
   const subtotal = lines.reduce((s, l) => s + l.unit_price_paise * l.qty, 0);
+
+  let discount = 0;
+  let appliedCode = "";
+  if (couponCode) {
+    const result = await validateCoupon(couponCode, subtotal);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    discount = result.discountPaise;
+    appliedCode = result.coupon.code;
+  }
+
   const shipping = shippingFor(subtotal);
-  const total = subtotal + shipping;
+  const total = subtotal - discount + shipping;
 
   // Attach the order to the signed-in user when there is one; guests get null.
   const supabase = await createClient();
@@ -135,6 +149,8 @@ export async function POST(request: NextRequest) {
       shipping_address: address,
       subtotal_paise: subtotal,
       shipping_paise: shipping,
+      coupon_code: appliedCode,
+      discount_paise: discount,
       total_paise: total,
       status: "pending_payment",
     })
@@ -183,6 +199,7 @@ export async function POST(request: NextRequest) {
     orderNumber: order.order_number,
     razorpayOrderId: razorpayOrder.id,
     amountPaise: total,
+    discountPaise: discount,
     keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
   });
 }

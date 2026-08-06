@@ -95,7 +95,13 @@ export default async function TrackOrderPage({
               </li>
             ))}
           </ul>
-          <p className="mt-6 flex justify-between border-t border-ink/10 pt-4 text-base">
+          {order.discount_paise > 0 && (
+            <p className="mt-3 flex justify-between text-sm text-gold">
+              <span>Discount ({order.coupon_code})</span>
+              <span>−{formatINR(order.discount_paise)}</span>
+            </p>
+          )}
+          <p className="mt-3 flex justify-between border-t border-ink/10 pt-4 text-base">
             <span>Total</span>
             <span>{formatINR(order.total_paise)}</span>
           </p>

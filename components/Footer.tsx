@@ -6,7 +6,10 @@ import type { Category } from "@/lib/supabase/types";
 
 export function Footer({ categories }: { categories: Category[] }) {
   return (
-    <footer className="mt-24 bg-ink text-cream">
+    // Hidden on mobile: the bottom tab bar covers navigation there, and a
+    // light footer sandwiched between dark page content and the dark tab
+    // bar reads as a layout bug rather than a footer.
+    <footer className="mt-24 hidden bg-ink text-cream md:block">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-3">
         <div>
           <p className="font-serif text-xl uppercase tracking-[0.25em]">

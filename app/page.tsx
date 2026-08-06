@@ -1,15 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getCategories, getProducts } from "@/lib/catalog";
+import { getWishlistProductIds } from "@/lib/wishlist";
 import { imageUrl, BRAND } from "@/lib/config";
 import { ProductCard } from "@/components/ProductCard";
 
-export const revalidate = 300;
-
 export default async function Home() {
-  const [categories, products] = await Promise.all([
+  const [categories, products, wishlist] = await Promise.all([
     getCategories(),
     getProducts({ limit: 8 }),
+    getWishlistProductIds(),
   ]);
 
   const shopHref = categories[0]
@@ -93,7 +93,12 @@ export default async function Home() {
           </div>
           <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
             {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                wishlisted={wishlist.has(p.id)}
+                path="/"
+              />
             ))}
           </div>
           {categories[0] && (

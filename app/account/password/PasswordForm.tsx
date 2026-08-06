@@ -33,12 +33,12 @@ export function PasswordForm() {
   }
 
   const field =
-    "mt-1 w-full border border-ink/20 bg-transparent px-4 py-3 text-sm outline-none focus:border-ink";
+    "mt-1 w-full border border-[#c59e5a]/30 bg-transparent px-4 py-3 text-sm text-[#f3e6cc] outline-none focus:border-[#c59e5a]";
 
   return (
     <form onSubmit={onSubmit} className="mt-10 space-y-5">
       <div>
-        <label htmlFor="password" className="text-[11px] uppercase tracking-[0.2em] text-ink/60">
+        <label htmlFor="password" className="text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]/60">
           New password
         </label>
         <input
@@ -51,11 +51,11 @@ export function PasswordForm() {
           onChange={(e) => setPassword(e.target.value)}
           className={field}
         />
-        <p className="mt-1 text-xs text-ink/40">At least 8 characters.</p>
+        <p className="mt-1 text-xs text-[#f3e6cc]/40">At least 8 characters.</p>
       </div>
 
       <div>
-        <label htmlFor="confirm" className="text-[11px] uppercase tracking-[0.2em] text-ink/60">
+        <label htmlFor="confirm" className="text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]/60">
           Confirm password
         </label>
         <input
@@ -70,12 +70,12 @@ export function PasswordForm() {
         />
       </div>
 
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
       <button
         type="submit"
         disabled={busy}
-        className="w-full bg-ink py-4 text-[11px] uppercase tracking-[0.25em] text-cream disabled:opacity-40"
+        className="w-full bg-[#c59e5a] py-4 text-[11px] uppercase tracking-[0.25em] text-[#0b0906] disabled:opacity-40"
       >
         {busy ? "Saving…" : "Save password"}
       </button>

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     .update({ status: "paid", razorpay_payment_id: payment.id })
     .eq("razorpay_order_id", razorpayOrderId)
     .eq("status", "pending_payment")
-    .select("id, order_number, email, total_paise")
+    .select("id, order_number, email, total_paise, coupon_code")
     .maybeSingle();
 
   if (error) {
@@ -52,6 +52,17 @@ export async function POST(request: NextRequest) {
     // Payment succeeded but stock ran out: keep the money-state truthful and
     // flag it for a human rather than silently overselling.
     console.error(`Oversold on order ${updated.order_number}`, stockError);
+  }
+
+  if (updated.coupon_code) {
+    // Redemption is counted here, at payment success, not at checkout —
+    // an abandoned pending_payment order must not use up a limited code.
+    const { error: couponError } = await admin.rpc("redeem_coupon", {
+      p_code: updated.coupon_code,
+    });
+    if (couponError) {
+      console.error(`Coupon redemption failed on ${updated.order_number}`, couponError);
+    }
   }
 
   try {

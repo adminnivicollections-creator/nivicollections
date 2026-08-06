@@ -48,6 +48,11 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
       </table>
       <table style="width:100%">
         <tr><td>Subtotal</td><td style="text-align:right">${formatINR(order.subtotal_paise)}</td></tr>
+        ${
+          order.discount_paise > 0
+            ? `<tr><td>Discount (${escapeHtml(order.coupon_code)})</td><td style="text-align:right">−${formatINR(order.discount_paise)}</td></tr>`
+            : ""
+        }
         <tr><td>Shipping</td><td style="text-align:right">${
           order.shipping_paise === 0 ? "Free" : formatINR(order.shipping_paise)
         }</td></tr>

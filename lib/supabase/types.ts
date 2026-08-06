@@ -98,6 +98,8 @@ export type Order = {
   status: OrderStatus;
   razorpay_order_id: string | null;
   razorpay_payment_id: string | null;
+  coupon_code: string;
+  discount_paise: number;
   tracking_number: string;
   carrier: string;
   admin_note: string;
@@ -126,6 +128,42 @@ export type Subscriber = {
   created_at: string;
 };
 
+export type Wishlist = {
+  id: string;
+  user_id: string;
+  product_id: string;
+  created_at: string;
+};
+
+export type DiscountType = "percent" | "flat";
+
+export type Coupon = {
+  id: string;
+  code: string;
+  description: string;
+  discount_type: DiscountType;
+  discount_value: number;
+  min_subtotal_paise: number;
+  max_discount_paise: number | null;
+  starts_at: string | null;
+  expires_at: string | null;
+  max_redemptions: number | null;
+  times_redeemed: number;
+  active: boolean;
+  created_at: string;
+};
+
+export type Review = {
+  id: string;
+  product_id: string;
+  order_item_id: string;
+  user_id: string;
+  rating: number;
+  title: string;
+  body: string;
+  created_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -145,11 +183,18 @@ export type Database = {
       orders: Table<Order>;
       order_items: Table<OrderItem>;
       subscribers: Table<Subscriber>;
+      wishlists: Table<Wishlist>;
+      coupons: Table<Coupon>;
+      reviews: Table<Review>;
     };
     Views: Record<never, never>;
     Functions: {
       reserve_order_stock: {
         Args: { p_order_id: string };
+        Returns: undefined;
+      };
+      redeem_coupon: {
+        Args: { p_code: string };
         Returns: undefined;
       };
     };

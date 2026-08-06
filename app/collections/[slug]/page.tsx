@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCategoryBySlug, getProducts } from "@/lib/catalog";
+import { getWishlistProductIds } from "@/lib/wishlist";
 import { ProductCard } from "@/components/ProductCard";
-
-export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -20,7 +19,11 @@ export default async function CollectionPage({
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const products = await getProducts({ categorySlug: slug });
+  const [products, wishlist] = await Promise.all([
+    getProducts({ categorySlug: slug }),
+    getWishlistProductIds(),
+  ]);
+  const path = `/collections/${slug}`;
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-16">
@@ -38,7 +41,12 @@ export default async function CollectionPage({
       ) : (
         <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
           {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard
+              key={p.id}
+              product={p}
+              wishlisted={wishlist.has(p.id)}
+              path={path}
+            />
           ))}
         </div>
       )}

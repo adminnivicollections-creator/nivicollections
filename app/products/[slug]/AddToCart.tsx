@@ -29,7 +29,7 @@ export function AddToCart({
     return (
       <button
         disabled
-        className="mt-10 w-full cursor-not-allowed border border-ink/30 py-4 text-[11px] uppercase tracking-[0.25em] text-ink/40"
+        className="mt-10 w-full cursor-not-allowed border border-[#c59e5a]/30 py-4 text-[11px] uppercase tracking-[0.25em] text-[#f3e6cc]/40"
       >
         Sold Out
       </button>
@@ -38,7 +38,9 @@ export function AddToCart({
 
   return (
     <div className="mt-10">
-      <p className="text-[11px] uppercase tracking-[0.2em] text-ink/60">Size</p>
+      <p className="text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]/60">
+        Size
+      </p>
       <div className="mt-3 flex flex-wrap gap-3">
         {variants.map((v) => {
           const out = v.stock <= 0;
@@ -52,10 +54,10 @@ export function AddToCart({
               }}
               className={`min-w-14 border px-4 py-3 text-sm transition-colors ${
                 out
-                  ? "cursor-not-allowed border-ink/15 text-ink/25 line-through"
+                  ? "cursor-not-allowed border-[#f3e6cc]/15 text-[#f3e6cc]/25 line-through"
                   : selected?.id === v.id
-                    ? "border-ink bg-ink text-cream"
-                    : "border-ink/30 text-ink hover:border-ink"
+                    ? "border-[#c59e5a] bg-[#c59e5a] text-[#0b0906]"
+                    : "border-[#c59e5a]/30 text-[#f3e6cc] hover:border-[#c59e5a]"
               }`}
             >
               {v.size}
@@ -65,7 +67,7 @@ export function AddToCart({
       </div>
 
       {selected && selected.stock <= 3 && (
-        <p className="mt-3 text-xs text-gold">
+        <p className="mt-3 text-xs text-[#c59e5a]">
           Only {selected.stock} left in {selected.size}
         </p>
       )}
@@ -85,7 +87,7 @@ export function AddToCart({
           setAdded(true);
         }}
         disabled={!selected}
-        className="mt-8 w-full bg-ink py-4 text-[11px] uppercase tracking-[0.25em] text-cream transition-opacity disabled:opacity-40"
+        className="mt-8 w-full bg-[#c59e5a] py-4 text-[11px] uppercase tracking-[0.25em] text-[#0b0906] transition-opacity disabled:opacity-40"
       >
         {!selected ? "Select a size" : added ? "Added to cart" : "Add to cart"}
       </button>
