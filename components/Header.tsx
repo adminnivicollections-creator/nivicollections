@@ -37,7 +37,7 @@ export function Header({
             cream header. The footer keeps the typographic wordmark. */}
         <Link href="/" aria-label={BRAND.name} className="shrink-0">
           <Image
-            src="/nivicollectionslogo-bg.png"
+            src="/images/nivicollectionslogo-bg.png"
             alt={BRAND.name}
             width={1254}
             height={1254}

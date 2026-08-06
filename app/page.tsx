@@ -12,73 +12,44 @@ export default async function Home() {
     getProducts({ limit: 8 }),
   ]);
 
-  // The hero uses real product photography when there is any, so the page
-  // never opens on a placeholder once the catalogue is stocked.
-  const heroImage = products.find((p) => p.product_images.length > 0)
-    ?.product_images[0];
+  const shopHref = categories[0]
+    ? `/collections/${categories[0].slug}`
+    : "/cart";
 
   return (
     <>
-      <section className="relative min-h-[75vh] overflow-hidden bg-[#0b0906] md:min-h-[85vh]">
-        {heroImage && (
+      <section className="bg-[#0b0906]">
+        {/*
+          The artwork carries the wordmark, tagline, headline and the four
+          marks, so none of them are repeated in markup below. Rendered
+          contained rather than cropped, so its text survives at every width.
+        */}
+        <Link href={shopHref} className="block">
           <Image
-            src={imageUrl(heroImage.storage_path)}
-            alt=""
-            fill
+            src="/images/nivihomepage.png"
+            alt="Nivi Collections — celebrate every moment in style. Sarees for every occasion."
+            width={1774}
+            height={887}
             priority
             sizes="100vw"
-            className="object-cover object-top opacity-60"
+            className="h-auto w-full"
           />
-        )}
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-r from-[#0b0906] via-[#0b0906]/75 to-transparent"
-        />
+        </Link>
 
-        <div className="relative flex min-h-[75vh] items-center px-6 md:min-h-[85vh] md:px-16">
-          <div className="max-w-xl">
-            <p className="text-[11px] uppercase tracking-[0.35em] text-[#c59e5a]">
-              Handwoven in India
-            </p>
-            <h1 className="mt-6 font-serif text-5xl font-light leading-[1.05] text-[#f3e6cc] sm:text-6xl md:text-7xl">
-              Timeless elegance,
-              <br />
-              woven for you
-            </h1>
-            <p className="mt-6 max-w-md leading-relaxed text-[#f3e6cc]/70">
-              Every saree is chosen for its drape, its fall and the hands that
-              made it. Limited pieces, never repeated.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Link
-                href={
-                  categories[0] ? `/collections/${categories[0].slug}` : "/cart"
-                }
-                className="bg-[#c59e5a] px-10 py-4 text-[11px] uppercase tracking-[0.25em] text-[#0b0906] transition-opacity hover:opacity-90"
-              >
-                Shop the collection
-              </Link>
-            </div>
-          </div>
+        {/* Search engines and screen readers need the heading as text, not
+            baked into a picture. */}
+        <h1 className="sr-only">
+          {BRAND.legalName} — {BRAND.tagline}
+        </h1>
+
+        <div className="flex justify-center px-6 pb-16 pt-10">
+          <Link
+            href={shopHref}
+            className="bg-[#c59e5a] px-12 py-4 text-[11px] uppercase tracking-[0.25em] text-[#0b0906] transition-opacity hover:opacity-90"
+          >
+            Shop the collection
+          </Link>
         </div>
-      </section>
-
-      <section className="border-b border-ink/10 bg-cream">
-        <ul className="mx-auto grid max-w-6xl grid-cols-2 gap-y-10 px-6 py-14 text-center md:grid-cols-4">
-          {[
-            ["Premium quality", "Pure fabrics, finished by hand"],
-            ["Exquisite designs", "Motifs drawn from tradition"],
-            ["Crafted with care", "Made in small batches"],
-            ["Free shipping", "On every order above ₹1,500"],
-          ].map(([title, sub]) => (
-            <li key={title} className="px-4">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-gold">
-                {title}
-              </p>
-              <p className="mt-2 text-sm text-ink/60">{sub}</p>
-            </li>
-          ))}
-        </ul>
       </section>
 
       {categories.length > 1 && (
@@ -128,7 +99,7 @@ export default async function Home() {
           {categories[0] && (
             <div className="mt-16 text-center">
               <Link
-                href={`/collections/${categories[0].slug}`}
+                href={shopHref}
                 className="border border-ink px-10 py-4 text-[11px] uppercase tracking-[0.25em] text-ink transition-colors hover:bg-ink hover:text-cream"
               >
                 View all
@@ -146,15 +117,6 @@ export default async function Home() {
           </p>
         </section>
       )}
-
-      <section className="bg-[#0b0906] px-6 py-24 text-center">
-        <p className="mx-auto max-w-2xl font-serif text-2xl font-light leading-relaxed text-[#f3e6cc] md:text-3xl">
-          &ldquo;{BRAND.tagline}&rdquo;
-        </p>
-        <p className="mt-6 text-[11px] uppercase tracking-[0.3em] text-[#c59e5a]">
-          {BRAND.legalName}
-        </p>
-      </section>
     </>
   );
 }

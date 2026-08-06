@@ -26,11 +26,11 @@ export const metadata: Metadata = {
   },
   description:
     "Limited-run lehengas, sarees, kurta sets and gowns, handcrafted by artisans across India.",
-  icons: { icon: "/nivicollectionslogo-bg.png" },
+  icons: { icon: "/images/nivicollectionslogo-bg.png" },
   openGraph: {
     title: `${BRAND.legalName} | ${BRAND.tagline}`,
-    description: "Handcrafted sarees. Launching soon.",
-    images: ["/images/nivicollectionslaunchingsoon.png"],
+    description: "Handwoven sarees for every occasion, made in limited runs.",
+    images: ["/images/nivihomepage.png"],
     type: "website",
   },
 };
