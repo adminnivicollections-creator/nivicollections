@@ -19,6 +19,9 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <Link href="/admin/products/new" className="text-ink/70 hover:text-ink">
             Add product
           </Link>
+          <Link href="/admin/categories" className="text-ink/70 hover:text-ink">
+            Categories
+          </Link>
           <Link href="/admin/orders" className="text-ink/70 hover:text-ink">
             Orders
           </Link>
