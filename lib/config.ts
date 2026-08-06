@@ -10,10 +10,8 @@
 export const BUSINESS = {
   // TODO(harsha): registered business name, if different from the brand.
   legalEntity: "Nivi Collections",
-  // TODO(harsha): full registered address including city, state and PIN.
-  address: "[ADDRESS PENDING]",
-  // TODO(harsha): contact number shown to customers.
-  phone: "[PHONE PENDING]",
+  address: "Street 5, Boduppal, Chengicherla, Secunderabad, Telangana 500092",
+  phone: "+91 93939 79892",
   // TODO(harsha): GSTIN, or set to null if not yet registered.
   gstin: null as string | null,
   /** Days from delivery within which a return may be raised. */
