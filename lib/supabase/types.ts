@@ -181,6 +181,12 @@ export type ProductAnswer = {
   created_at: string;
 };
 
+export type TryonUsage = {
+  user_id: string;
+  day: string;
+  count: number;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -205,6 +211,7 @@ export type Database = {
       reviews: Table<Review>;
       product_questions: Table<ProductQuestion>;
       product_answers: Table<ProductAnswer>;
+      tryon_usage: Table<TryonUsage>;
     };
     Views: Record<never, never>;
     Functions: {
@@ -215,6 +222,10 @@ export type Database = {
       redeem_coupon: {
         Args: { p_code: string };
         Returns: undefined;
+      };
+      increment_tryon_usage: {
+        Args: { p_user_id: string; p_max: number };
+        Returns: number;
       };
     };
     Enums: { order_status: OrderStatus };

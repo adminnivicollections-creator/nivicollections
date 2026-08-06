@@ -5,12 +5,14 @@ import { getProductBySlug, getRelatedProducts, isSoldOut } from "@/lib/catalog";
 import { getWishlistProductIds } from "@/lib/wishlist";
 import { getReviewSummary } from "@/lib/reviews";
 import { getFrequentlyBoughtWith } from "@/lib/recommendations";
+import { getUserId } from "@/lib/auth";
 import { formatINR } from "@/lib/config";
 import { ProductMedia } from "@/components/ProductMedia";
 import { ProductCard } from "@/components/ProductCard";
 import { WishlistHeart } from "@/components/WishlistHeart";
 import { Stars } from "@/components/Stars";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { TryOnWidget } from "@/components/TryOnWidget";
 import { AddToCart } from "./AddToCart";
 import { Reviews } from "./Reviews";
 import { QA } from "./QA";
@@ -35,12 +37,13 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const path = `/products/${slug}`;
-  const [related, wishlist, reviewSummary, frequentlyBoughtWith] =
+  const [related, wishlist, reviewSummary, frequentlyBoughtWith, userId] =
     await Promise.all([
       getRelatedProducts(product),
       getWishlistProductIds(),
       getReviewSummary(product.id),
       getFrequentlyBoughtWith(product.id),
+      getUserId(),
     ]);
   const [hero, ...rest] = product.product_images;
 
@@ -150,6 +153,12 @@ export default async function ProductPage({
             </dl>
           </div>
         </div>
+
+        <TryOnWidget
+          productId={product.id}
+          signedIn={Boolean(userId)}
+          path={path}
+        />
 
         {frequentlyBoughtWith.length > 0 && (
           <section className="mt-28">
