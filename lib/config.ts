@@ -2,10 +2,10 @@
 // name or the shipping rule is one edit rather than a grep.
 
 export const BRAND = {
-  // TODO(harsha): replace with the real business name — used in the header
-  // wordmark, page titles, footer and order emails.
-  name: "NIVI",
+  /** Header/footer wordmark. Rendered uppercase with wide letter-spacing. */
+  name: "Nivi Collections",
   legalName: "Nivi Collections",
+  // TODO(harsha): confirm the address customers should write to.
   email: "hello@nivicollections.com",
   supportHours: "Mon to Sat, 10am to 6pm IST",
 };

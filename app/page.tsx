@@ -29,15 +29,19 @@ export default async function Home() {
             runs. No mass production, no repeats.
           </p>
           <Link
-            href="/collections/new-arrivals"
+            href={
+              categories[0] ? `/collections/${categories[0].slug}` : "/cart"
+            }
             className="mt-10 w-fit border border-ink px-10 py-4 text-[11px] uppercase tracking-[0.25em] text-ink transition-colors hover:bg-ink hover:text-cream"
           >
-            Shop New Arrivals
+            Shop the Collection
           </Link>
         </div>
       </section>
 
-      {categories.length > 0 && (
+      {/* A single-category shop has nothing to choose between, so the grid
+          only earns its space once there is a second collection. */}
+      {categories.length > 1 && (
         <section className="mx-auto max-w-7xl px-5 py-24">
           <h2 className="text-center font-serif text-3xl font-light text-ink">
             Collections

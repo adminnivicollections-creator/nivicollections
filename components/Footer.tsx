@@ -7,7 +7,9 @@ export function Footer({ categories }: { categories: Category[] }) {
     <footer className="mt-24 bg-ink text-cream">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-3">
         <div>
-          <p className="font-serif text-2xl tracking-[0.3em]">{BRAND.name}</p>
+          <p className="font-serif text-xl uppercase tracking-[0.25em]">
+            {BRAND.name}
+          </p>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream/70">
             Handcrafted Indian occasion wear, made in limited runs by artisans
             across the country.

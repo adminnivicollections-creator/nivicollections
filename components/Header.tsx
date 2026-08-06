@@ -34,7 +34,7 @@ export function Header({
 
         <Link
           href="/"
-          className="font-serif text-2xl tracking-[0.3em] text-ink md:text-3xl"
+          className="whitespace-nowrap font-serif text-base uppercase tracking-[0.2em] text-ink sm:text-xl md:text-2xl md:tracking-[0.3em]"
         >
           {BRAND.name}
         </Link>
