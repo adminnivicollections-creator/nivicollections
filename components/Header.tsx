@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { BRAND } from "@/lib/config";
@@ -32,11 +33,17 @@ export function Header({
           {open ? "Close" : "Menu"}
         </button>
 
-        <Link
-          href="/"
-          className="whitespace-nowrap font-serif text-base uppercase tracking-[0.2em] text-ink sm:text-xl md:text-2xl md:tracking-[0.3em]"
-        >
-          {BRAND.name}
+        {/* The mark's lettering is dark, which is why it only appears on the
+            cream header. The footer keeps the typographic wordmark. */}
+        <Link href="/" aria-label={BRAND.name} className="shrink-0">
+          <Image
+            src="/nivicollectionslogo-bg.png"
+            alt={BRAND.name}
+            width={1254}
+            height={1254}
+            priority
+            className="h-20 w-auto md:h-28"
+          />
         </Link>
 
         <div className="flex w-28 items-center justify-end gap-4 text-sm">

@@ -27,6 +27,13 @@ export const metadata: Metadata = {
   },
   description:
     "Limited-run lehengas, sarees, kurta sets and gowns, handcrafted by artisans across India.",
+  icons: { icon: "/nivicollectionslogo-bg.png" },
+  openGraph: {
+    title: `${BRAND.legalName} | ${BRAND.tagline}`,
+    description: "Handcrafted sarees. Launching soon.",
+    images: ["/images/nivicollectionslaunchingsoon.png"],
+    type: "website",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
