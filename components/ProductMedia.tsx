@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { imageUrl } from "@/lib/catalog";
+import { imageUrl } from "@/lib/config";
 import type { ProductImage } from "@/lib/supabase/types";
 
 // Falls back to a neutral block when a product has no photo yet, so the grid

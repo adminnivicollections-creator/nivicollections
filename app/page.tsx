@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getCategories, getProducts, imageUrl } from "@/lib/catalog";
+import { getCategories, getProducts } from "@/lib/catalog";
+import { imageUrl } from "@/lib/config";
 import { ProductCard } from "@/components/ProductCard";
 
 export const revalidate = 300;

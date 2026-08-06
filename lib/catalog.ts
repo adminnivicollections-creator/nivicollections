@@ -110,9 +110,3 @@ export async function getRelatedProducts(
 export function isSoldOut(p: ProductWithMedia): boolean {
   return p.product_variants.every((v) => v.stock <= 0);
 }
-
-/** Public URL for an image in the `product-images` bucket. */
-export function imageUrl(storagePath: string): string {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  return `${base}/storage/v1/object/public/product-images/${storagePath}`;
-}

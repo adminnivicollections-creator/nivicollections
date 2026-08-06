@@ -3,8 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
-import { formatINR, shippingFor, SHIPPING } from "@/lib/config";
-import { imageUrl } from "@/lib/catalog";
+import { formatINR, shippingFor, SHIPPING, imageUrl } from "@/lib/config";
 
 export default function CartPage() {
   const { lines, subtotalPaise, setQty, remove, hydrated } = useCart();
