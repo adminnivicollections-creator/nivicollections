@@ -1,4 +1,5 @@
 import { CheckoutForm } from "./CheckoutForm";
+import { TrustBar } from "@/components/TrustBar";
 
 export const metadata = { title: "Checkout" };
 
@@ -10,6 +11,9 @@ export default function CheckoutPage() {
           Checkout
         </h1>
         <CheckoutForm />
+        <div className="mt-16">
+          <TrustBar dark />
+        </div>
       </div>
     </div>
   );

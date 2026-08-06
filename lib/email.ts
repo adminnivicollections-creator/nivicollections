@@ -63,6 +63,8 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
         ${escapeHtml(a.line1)}${a.line2 ? `<br>${escapeHtml(a.line2)}` : ""}<br>
         ${escapeHtml(a.city)}, ${escapeHtml(a.state)} ${escapeHtml(a.pincode)}
       </p>
+      ${order.gift_wrap ? `<p style="color:#666">🎁 Gift wrapping requested.</p>` : ""}
+      ${order.notes ? `<p style="color:#666">Your note: &ldquo;${escapeHtml(order.notes)}&rdquo;</p>` : ""}
       <p style="color:#666;font-size:12px">Questions? Reply to this email or write to ${escapeHtml(BRAND.email)}.</p>
     </div>`;
 

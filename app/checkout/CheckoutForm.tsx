@@ -103,6 +103,8 @@ export function CheckoutForm() {
       // Only ids and quantities travel; the server prices the order itself.
       items: lines.map((l) => ({ variantId: l.variantId, qty: l.qty })),
       couponCode: coupon?.code,
+      notes: String(fd.get("notes") ?? ""),
+      giftWrap: fd.get("giftWrap") === "on",
     };
 
     try {
@@ -211,6 +213,29 @@ export function CheckoutForm() {
             />
           </div>
         </div>
+
+        <div>
+          <label htmlFor="notes" className={label}>
+            Order notes (optional)
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={2}
+            maxLength={500}
+            placeholder="A note for the packer — a preferred delivery time, a message for a gift, etc."
+            className={field}
+          />
+        </div>
+
+        <label className="flex items-center gap-3 text-sm text-[#f3e6cc]">
+          <input
+            type="checkbox"
+            name="giftWrap"
+            className="h-4 w-4 accent-[#c59e5a]"
+          />
+          Gift wrap this order
+        </label>
 
         {error && <p className="text-sm text-red-400">{error}</p>}
 

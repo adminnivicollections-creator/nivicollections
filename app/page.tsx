@@ -4,6 +4,7 @@ import { getCategories, getProducts } from "@/lib/catalog";
 import { getWishlistProductIds } from "@/lib/wishlist";
 import { imageUrl, BRAND } from "@/lib/config";
 import { ProductCard } from "@/components/ProductCard";
+import { TrustBar } from "@/components/TrustBar";
 
 export default async function Home() {
   const [categories, products, wishlist] = await Promise.all([
@@ -51,6 +52,8 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      <TrustBar />
 
       {categories.length > 1 && (
         <section className="mx-auto max-w-7xl px-5 py-24">

@@ -4,13 +4,16 @@ import type { Metadata } from "next";
 import { getProductBySlug, getRelatedProducts, isSoldOut } from "@/lib/catalog";
 import { getWishlistProductIds } from "@/lib/wishlist";
 import { getReviewSummary } from "@/lib/reviews";
+import { getFrequentlyBoughtWith } from "@/lib/recommendations";
 import { formatINR } from "@/lib/config";
 import { ProductMedia } from "@/components/ProductMedia";
 import { ProductCard } from "@/components/ProductCard";
 import { WishlistHeart } from "@/components/WishlistHeart";
 import { Stars } from "@/components/Stars";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { AddToCart } from "./AddToCart";
 import { Reviews } from "./Reviews";
+import { QA } from "./QA";
 
 export async function generateMetadata({
   params,
@@ -32,11 +35,13 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const path = `/products/${slug}`;
-  const [related, wishlist, reviewSummary] = await Promise.all([
-    getRelatedProducts(product),
-    getWishlistProductIds(),
-    getReviewSummary(product.id),
-  ]);
+  const [related, wishlist, reviewSummary, frequentlyBoughtWith] =
+    await Promise.all([
+      getRelatedProducts(product),
+      getWishlistProductIds(),
+      getReviewSummary(product.id),
+      getFrequentlyBoughtWith(product.id),
+    ]);
   const [hero, ...rest] = product.product_images;
 
   return (
@@ -146,7 +151,27 @@ export default async function ProductPage({
           </div>
         </div>
 
+        {frequentlyBoughtWith.length > 0 && (
+          <section className="mt-28">
+            <h2 className="text-center font-serif text-3xl font-light text-[#f3e6cc]">
+              Frequently Bought Together
+            </h2>
+            <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
+              {frequentlyBoughtWith.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  wishlisted={wishlist.has(p.id)}
+                  path={path}
+                  dark
+                />
+              ))}
+            </div>
+          </section>
+        )}
+
         <Reviews productId={product.id} slug={slug} />
+        <QA productId={product.id} slug={slug} />
 
         {related.length > 0 && (
           <section className="mt-28">
@@ -166,6 +191,15 @@ export default async function ProductPage({
             </div>
           </section>
         )}
+
+        <RecentlyViewed
+          current={{
+            slug: product.slug,
+            name: product.name,
+            pricePaise: product.price_paise,
+            imagePath: hero?.storage_path ?? null,
+          }}
+        />
       </div>
     </div>
   );

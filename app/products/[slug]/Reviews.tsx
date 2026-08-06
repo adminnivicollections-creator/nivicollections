@@ -52,6 +52,12 @@ export async function Reviews({
                 <span className="text-sm text-[#f3e6cc]">
                   {r.reviewerName}
                 </span>
+                {/* Not a claim to verify — reviews.insert's RLS policy
+                    requires a real delivered order_item, so every row here
+                    is a verified purchase by construction. */}
+                <span className="border border-[#c59e5a]/40 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-[#c59e5a]">
+                  Verified Purchase
+                </span>
                 <span className="text-xs text-[#f3e6cc]/40">
                   {new Date(r.created_at).toLocaleDateString("en-IN", {
                     month: "short",

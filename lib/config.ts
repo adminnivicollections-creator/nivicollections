@@ -17,6 +17,10 @@ export const BUSINESS = {
   /** Days from delivery within which a return may be raised. */
   // TODO(harsha): confirm — 7 or 15 days.
   returnWindowDays: 7,
+  /** wa.me needs digits only: country code + number, no +, no spaces. */
+  get whatsappNumber() {
+    return this.phone.replace(/\D/g, "");
+  },
   /** Working days to dispatch a ready-to-ship piece. */
   dispatchDays: "2 to 3",
   /** Working days for a refund to reach the original payment method. */

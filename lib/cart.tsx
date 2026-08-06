@@ -25,9 +25,13 @@ export type CartLine = {
 
 type CartContext = {
   lines: CartLine[];
+  saved: CartLine[];
   add: (line: Omit<CartLine, "qty">) => void;
   setQty: (variantId: string, qty: number) => void;
   remove: (variantId: string) => void;
+  saveForLater: (variantId: string) => void;
+  moveToCart: (variantId: string) => void;
+  removeSaved: (variantId: string) => void;
   clear: () => void;
   count: number;
   subtotalPaise: number;
@@ -36,10 +40,12 @@ type CartContext = {
 
 const Ctx = createContext<CartContext | null>(null);
 const STORAGE_KEY = "nivi-cart-v2";
+const SAVED_KEY = "nivi-saved-v1";
 const MAX_QTY_PER_LINE = 10;
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
+  const [saved, setSaved] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   // Cart must start empty so SSR and the first client render agree;
@@ -53,6 +59,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch {
       // Corrupt or unavailable storage: start empty rather than crash.
     }
+    try {
+      const raw = localStorage.getItem(SAVED_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed)) setSaved(parsed.filter(isCartLine));
+    } catch {
+      // Same as above.
+    }
     setHydrated(true);
   }, []);
 
@@ -60,9 +73,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
   }, [lines, hydrated]);
 
+  useEffect(() => {
+    if (hydrated) localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+  }, [saved, hydrated]);
+
   const value = useMemo<CartContext>(
     () => ({
       lines,
+      saved,
       hydrated,
       count: lines.reduce((n, l) => n + l.qty, 0),
       subtotalPaise: lines.reduce((sum, l) => sum + l.pricePaise * l.qty, 0),
@@ -88,9 +106,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ),
       remove: (variantId) =>
         setLines((prev) => prev.filter((l) => l.variantId !== variantId)),
+      // Reads the current (outer-scope) `lines`/`saved` rather than nesting
+      // one updater inside another: two independent setState calls, batched
+      // by React into a single re-render, and no risk of a functional
+      // updater re-running twice under Strict Mode double-invocation.
+      saveForLater: (variantId) => {
+        const line = lines.find((l) => l.variantId === variantId);
+        if (!line) return;
+        setSaved((s) =>
+          s.some((l) => l.variantId === variantId) ? s : [...s, line],
+        );
+        setLines((prev) => prev.filter((l) => l.variantId !== variantId));
+      },
+      moveToCart: (variantId) => {
+        const line = saved.find((l) => l.variantId === variantId);
+        if (!line) return;
+        setLines((prev) => {
+          const existing = prev.find((l) => l.variantId === variantId);
+          if (!existing) return [...prev, line];
+          return prev.map((l) =>
+            l.variantId === variantId
+              ? { ...l, qty: Math.min(l.qty + line.qty, MAX_QTY_PER_LINE) }
+              : l,
+          );
+        });
+        setSaved((prev) => prev.filter((l) => l.variantId !== variantId));
+      },
+      removeSaved: (variantId) =>
+        setSaved((prev) => prev.filter((l) => l.variantId !== variantId)),
       clear: () => setLines([]),
     }),
-    [lines, hydrated],
+    [lines, saved, hydrated],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -32,6 +32,8 @@ const schema = z.object({
     .min(1)
     .max(20),
   couponCode: z.string().trim().max(40).optional(),
+  notes: z.string().trim().max(500).default(""),
+  giftWrap: z.coerce.boolean().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -49,7 +51,8 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  const { email, phone, address, items, couponCode } = parsed.data;
+  const { email, phone, address, items, couponCode, notes, giftWrap } =
+    parsed.data;
 
   // Collapse duplicate variant ids so a repeated line cannot dodge the stock check.
   const wanted = new Map<string, number>();
@@ -152,6 +155,8 @@ export async function POST(request: NextRequest) {
       coupon_code: appliedCode,
       discount_paise: discount,
       total_paise: total,
+      notes,
+      gift_wrap: giftWrap,
       status: "pending_payment",
     })
     .select("id, order_number")

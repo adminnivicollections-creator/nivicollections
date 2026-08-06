@@ -44,6 +44,19 @@ export default async function AdminOrderPage({
         Placed {new Date(order.created_at).toLocaleString("en-IN")}
       </p>
 
+      {(order.gift_wrap || order.notes) && (
+        <div className="mt-4 max-w-2xl border border-gold/40 bg-blush/40 p-4 text-sm">
+          {order.gift_wrap && (
+            <p className="font-medium text-ink">🎁 Gift wrap requested</p>
+          )}
+          {order.notes && (
+            <p className={order.gift_wrap ? "mt-2 text-ink/80" : "text-ink/80"}>
+              &ldquo;{order.notes}&rdquo;
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="mt-10 grid gap-12 md:grid-cols-[1fr_22rem]">
         <div>
           <h3 className="text-[11px] uppercase tracking-[0.2em] text-ink/60">
@@ -68,6 +81,12 @@ export default async function AdminOrderPage({
               <dt className="text-ink/60">Subtotal</dt>
               <dd>{formatINR(order.subtotal_paise)}</dd>
             </div>
+            {order.discount_paise > 0 && (
+              <div className="flex justify-between text-gold">
+                <dt>Discount ({order.coupon_code})</dt>
+                <dd>−{formatINR(order.discount_paise)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-ink/60">Shipping</dt>
               <dd>

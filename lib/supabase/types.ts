@@ -103,6 +103,8 @@ export type Order = {
   tracking_number: string;
   carrier: string;
   admin_note: string;
+  notes: string;
+  gift_wrap: boolean;
   shipped_at: string | null;
   delivered_at: string | null;
   created_at: string;
@@ -164,6 +166,21 @@ export type Review = {
   created_at: string;
 };
 
+export type ProductQuestion = {
+  id: string;
+  product_id: string;
+  user_id: string;
+  question: string;
+  created_at: string;
+};
+
+export type ProductAnswer = {
+  id: string;
+  question_id: string;
+  answer: string;
+  created_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -186,6 +203,8 @@ export type Database = {
       wishlists: Table<Wishlist>;
       coupons: Table<Coupon>;
       reviews: Table<Review>;
+      product_questions: Table<ProductQuestion>;
+      product_answers: Table<ProductAnswer>;
     };
     Views: Record<never, never>;
     Functions: {
