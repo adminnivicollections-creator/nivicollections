@@ -134,7 +134,12 @@ export type Database = {
       order_items: Table<OrderItem>;
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      reserve_order_stock: {
+        Args: { p_order_id: string };
+        Returns: undefined;
+      };
+    };
     Enums: { order_status: OrderStatus };
     CompositeTypes: Record<never, never>;
   };
