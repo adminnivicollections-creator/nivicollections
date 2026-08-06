@@ -189,7 +189,7 @@ export async function deleteProduct(productId: string): Promise<void> {
   if (error) throw error;
 
   revalidatePath("/", "layout");
-  redirect("/admin");
+  redirect("/admin/products");
 }
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
