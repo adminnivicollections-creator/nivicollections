@@ -99,6 +99,13 @@ export default async function TrackOrderPage({
             <span>Total</span>
             <span>{formatINR(order.total_paise)}</span>
           </p>
+
+          {order.tracking_number && (
+            <p className="mt-6 text-sm text-ink/70">
+              Tracking: <span className="font-mono">{order.tracking_number}</span>
+              {order.carrier && ` · ${order.carrier}`}
+            </p>
+          )}
         </div>
       )}
     </div>

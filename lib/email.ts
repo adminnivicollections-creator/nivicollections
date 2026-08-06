@@ -80,6 +80,59 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
   }
 }
 
+/** Tells the customer their parcel is on its way. */
+export async function sendShippingNotice(orderId: string): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.ORDER_EMAIL_FROM;
+  if (!apiKey || !from) {
+    console.warn("RESEND_API_KEY or ORDER_EMAIL_FROM unset — skipping email");
+    return;
+  }
+
+  const { data: order, error } = await createAdminClient()
+    .from("orders")
+    .select("*")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!order) throw new Error(`Order ${orderId} not found`);
+
+  const tracking = order.tracking_number
+    ? `<p>Tracking number: <strong>${escapeHtml(order.tracking_number)}</strong>${
+        order.carrier ? ` (${escapeHtml(order.carrier)})` : ""
+      }</p>`
+    : "";
+
+  const html = `
+    <div style="font-family:Georgia,serif;max-width:520px;color:#241f1b">
+      <h1 style="font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:18px">
+        ${escapeHtml(BRAND.name)}
+      </h1>
+      <p>Your order <strong>${escapeHtml(order.order_number)}</strong> has been dispatched.</p>
+      ${tracking}
+      <p style="color:#666;font-size:12px">Questions? Write to ${escapeHtml(BRAND.email)}.</p>
+    </div>`;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: `${BRAND.name} <${from}>`,
+      to: [order.email],
+      subject: `Order ${order.order_number} is on its way`,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Resend failed (${res.status}): ${await res.text()}`);
+  }
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

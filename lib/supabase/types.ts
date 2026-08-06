@@ -98,6 +98,11 @@ export type Order = {
   status: OrderStatus;
   razorpay_order_id: string | null;
   razorpay_payment_id: string | null;
+  tracking_number: string;
+  carrier: string;
+  admin_note: string;
+  shipped_at: string | null;
+  delivered_at: string | null;
   created_at: string;
   updated_at: string;
 };
