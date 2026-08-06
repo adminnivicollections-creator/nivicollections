@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatINR } from "@/lib/config";
+import { trackShipment } from "@/lib/shiprocket";
 import type { Order, OrderItem } from "@/lib/supabase/types";
 import { updateOrder } from "../actions";
 import { OrderForm } from "./OrderForm";
@@ -24,6 +25,10 @@ export default async function AdminOrderPage({
 
   const a = order.shipping_address;
   const action = updateOrder.bind(null, order.id);
+
+  const shipment = order.tracking_number
+    ? await trackShipment(order.tracking_number).catch(() => null)
+    : null;
 
   return (
     <div className="py-10">
@@ -124,6 +129,23 @@ export default async function AdminOrderPage({
             <br />
             {order.phone}
           </p>
+
+          {order.tracking_number && shipment?.found && (
+            <div className="mt-8 border border-ink/10 p-4 text-sm">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-ink/50">
+                Live status via Shiprocket
+              </p>
+              <p className="mt-2 text-gold">{shipment.status}</p>
+              {shipment.courierName && (
+                <p className="mt-1 text-ink/60">{shipment.courierName}</p>
+              )}
+              {shipment.estimatedDelivery && !shipment.deliveredDate && (
+                <p className="mt-1 text-ink/60">
+                  ETA {shipment.estimatedDelivery}
+                </p>
+              )}
+            </div>
+          )}
 
           {order.razorpay_payment_id && (
             <p className="mt-8 text-xs text-ink/40">

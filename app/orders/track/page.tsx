@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatINR } from "@/lib/config";
+import { trackShipment, type ShipmentStatus } from "@/lib/shiprocket";
 import type { Order, OrderItem } from "@/lib/supabase/types";
 
 export const metadata = { title: "Track your order" };
@@ -26,6 +27,17 @@ export default async function TrackOrderPage({
   const email = typeof params.email === "string" ? params.email : "";
   const searched = Boolean(orderNumber && email);
   const order = searched ? await lookup(orderNumber, email) : null;
+
+  // Never let a Shiprocket hiccup break the order-lookup page — the order
+  // itself is the important part; live status is a bonus if it loads.
+  let shipment: ShipmentStatus | null = null;
+  if (order?.tracking_number) {
+    try {
+      shipment = await trackShipment(order.tracking_number);
+    } catch (e) {
+      console.error("Shiprocket tracking lookup failed", e);
+    }
+  }
 
   const field =
     "mt-1 w-full border border-ink/20 bg-transparent px-4 py-3 text-sm outline-none focus:border-ink";
@@ -107,10 +119,45 @@ export default async function TrackOrderPage({
           </p>
 
           {order.tracking_number && (
-            <p className="mt-6 text-sm text-ink/70">
-              Tracking: <span className="font-mono">{order.tracking_number}</span>
-              {order.carrier && ` · ${order.carrier}`}
-            </p>
+            <div className="mt-6 border border-ink/10 p-4 text-sm">
+              <p className="text-ink/70">
+                Tracking: <span className="font-mono">{order.tracking_number}</span>
+                {order.carrier && ` · ${order.carrier}`}
+              </p>
+              {shipment?.found && (
+                <dl className="mt-3 space-y-1 border-t border-ink/10 pt-3">
+                  <div className="flex justify-between">
+                    <dt className="text-ink/60">Status</dt>
+                    <dd className="text-gold">{shipment.status}</dd>
+                  </div>
+                  {shipment.courierName && (
+                    <div className="flex justify-between">
+                      <dt className="text-ink/60">Courier</dt>
+                      <dd className="text-ink">{shipment.courierName}</dd>
+                    </div>
+                  )}
+                  {shipment.destination && (
+                    <div className="flex justify-between">
+                      <dt className="text-ink/60">Destination</dt>
+                      <dd className="text-ink">{shipment.destination}</dd>
+                    </div>
+                  )}
+                  {shipment.deliveredDate ? (
+                    <div className="flex justify-between">
+                      <dt className="text-ink/60">Delivered</dt>
+                      <dd className="text-ink">{shipment.deliveredDate}</dd>
+                    </div>
+                  ) : (
+                    shipment.estimatedDelivery && (
+                      <div className="flex justify-between">
+                        <dt className="text-ink/60">Estimated delivery</dt>
+                        <dd className="text-ink">{shipment.estimatedDelivery}</dd>
+                      </div>
+                    )
+                  )}
+                </dl>
+              )}
+            </div>
           )}
         </div>
       )}
