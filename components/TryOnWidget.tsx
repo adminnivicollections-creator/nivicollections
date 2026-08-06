@@ -18,6 +18,7 @@ export function TryOnWidget({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [shareState, setShareState] = useState<"idle" | "shared" | "downloaded">("idle");
 
   if (!signedIn) {
     return (
@@ -36,6 +37,33 @@ export function TryOnWidget({
         </Link>
       </section>
     );
+  }
+
+  async function share() {
+    if (!result) return;
+    const res = await fetch(result);
+    const blob = await res.blob();
+    const file = new File([blob], "try-on.png", { type: "image/png" });
+
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "My try-on preview",
+          text: "See how this saree looks on me",
+        });
+        setShareState("shared");
+        return;
+      } catch {
+        // User cancelled the share sheet — fall through to download.
+      }
+    }
+
+    const a = document.createElement("a");
+    a.href = result;
+    a.download = "try-on.png";
+    a.click();
+    setShareState("downloaded");
   }
 
   async function submit() {
@@ -94,16 +122,32 @@ export function TryOnWidget({
               <p className="mt-4 text-xs text-[#f3e6cc]/40">
                 AI-generated preview. Actual fit, drape and colour may vary.
               </p>
-              <button
-                onClick={() => {
-                  setResult(null);
-                  setFile(null);
-                  setConsent(false);
-                }}
-                className="mt-6 border border-[#c59e5a] px-8 py-3 text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]"
-              >
-                Try another photo
-              </button>
+
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <a
+                  href="#add-to-cart"
+                  className="bg-[#c59e5a] px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-[#0b0906]"
+                >
+                  🛒 Add to cart
+                </a>
+                <button
+                  onClick={share}
+                  className="border border-[#c59e5a] px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]"
+                >
+                  📤 {shareState === "idle" ? "Share" : shareState === "shared" ? "Shared" : "Saved"}
+                </button>
+                <button
+                  onClick={() => {
+                    setResult(null);
+                    setFile(null);
+                    setConsent(false);
+                    setShareState("idle");
+                  }}
+                  className="px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-[#f3e6cc]/60"
+                >
+                  Try another photo
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">

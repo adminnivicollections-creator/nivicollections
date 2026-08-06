@@ -1,41 +1,48 @@
 import "server-only";
 
+export type ImageInput = { buffer: Buffer; type: string };
+
 /**
- * Composites a customer's photo with a garment photo using OpenAI's image
- * editing model. Not a dedicated virtual-try-on model — it re-renders the
- * whole image, so the result approximates the person rather than locking
+ * Composites a customer's photo with garment reference photos using OpenAI's
+ * image editing model. Not a dedicated virtual-try-on model — it re-renders
+ * the whole image, so the result approximates the person rather than locking
  * their exact likeness. Verified against the real API before this was
- * written; the drape, colour and border came through convincingly in
- * testing, the face did not come through pixel-identical.
+ * written, including a real side-by-side test of one reference photo versus
+ * three (full shot + a border/pallu close-up): the extra close-up visibly
+ * sharpened the embroidery and border detail in the result, which is why
+ * the caller sends every photo a product has, not just the first.
  */
 export async function generateTryOn(
-  personBuffer: Buffer,
-  personType: string,
-  garmentBuffer: Buffer,
-  garmentType: string,
+  person: ImageInput,
+  garments: ImageInput[],
 ): Promise<Buffer> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("Try-on is not configured.");
+  if (garments.length === 0) throw new Error("No reference photos to try on.");
 
   const form = new FormData();
   form.append("model", "gpt-image-1");
   form.append(
     "image[]",
-    new Blob([new Uint8Array(personBuffer)], { type: personType }),
+    new Blob([new Uint8Array(person.buffer)], { type: person.type }),
     "person.jpg",
   );
-  form.append(
-    "image[]",
-    new Blob([new Uint8Array(garmentBuffer)], { type: garmentType }),
-    "garment.jpg",
-  );
+  garments.forEach((g, i) => {
+    form.append(
+      "image[]",
+      new Blob([new Uint8Array(g.buffer)], { type: g.type }),
+      `garment-${i}.jpg`,
+    );
+  });
   form.append(
     "prompt",
-    "Take the person from the first photo and dress them in the saree shown " +
-      "in the second photo. Keep the person's face, body, pose, skin tone " +
-      "and the background from the first photo unchanged as closely as " +
-      "possible. Realistically render the saree's drape, colour, pattern " +
-      "and border on their body, as if they are actually wearing it.",
+    "Dress the uploaded person (first photo) in the saree shown in the " +
+      "reference photos that follow. Preserve the person's face, hairstyle, " +
+      "skin tone, body shape and pose, and keep the original background. " +
+      "Recreate the saree exactly as shown across the reference photos — " +
+      "including its border, pallu, pleats, embroidery, prints, fabric " +
+      "texture and colours — rather than a generic approximation. Produce " +
+      "a realistic ecommerce fashion try-on photograph.",
   );
   form.append("size", "1024x1024");
 

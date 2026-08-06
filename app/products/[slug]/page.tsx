@@ -123,6 +123,7 @@ export default async function ProductPage({
               </p>
             )}
 
+            <div id="add-to-cart">
             <AddToCart
               productId={product.id}
               slug={product.slug}
@@ -132,6 +133,7 @@ export default async function ProductPage({
               variants={product.product_variants}
               soldOut={isSoldOut(product)}
             />
+            </div>
 
             <dl className="mt-12 space-y-4 border-t border-[#c59e5a]/20 pt-8 text-sm">
               <div className="flex justify-between">
