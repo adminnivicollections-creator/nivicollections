@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/config";
 import { NewsletterForm } from "./NewsletterForm";
+import { POLICIES } from "@/lib/policies";
 import type { Category } from "@/lib/supabase/types";
 
 export function Footer({ categories }: { categories: Category[] }) {
@@ -53,6 +54,23 @@ export function Footer({ categories }: { categories: Category[] }) {
             <NewsletterForm />
           </div>
         </div>
+      </div>
+
+      <div className="border-t border-cream/10">
+        <ul className="mx-auto flex max-w-7xl flex-wrap justify-center gap-x-6 gap-y-2 px-5 py-6 text-xs text-cream/60">
+          {POLICIES.map((p) => (
+            <li key={p.slug}>
+              <Link href={`/policies/${p.slug}`} className="hover:text-gold">
+                {p.title}
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link href="/contact" className="hover:text-gold">
+              Contact Us
+            </Link>
+          </li>
+        </ul>
       </div>
 
       <div className="border-t border-cream/10 py-6 text-center text-xs text-cream/50">

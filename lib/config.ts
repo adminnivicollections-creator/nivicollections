@@ -1,6 +1,30 @@
 // Every brand-level value the storefront renders lives here, so changing the
 // name or the shipping rule is one edit rather than a grep.
 
+/**
+ * Legally binding details. These appear verbatim in the policy pages that
+ * Razorpay checks during account activation, and that customers rely on in a
+ * dispute — so every TODO below must be replaced with real information before
+ * the store takes an order. Do not guess at any of them.
+ */
+export const BUSINESS = {
+  // TODO(harsha): registered business name, if different from the brand.
+  legalEntity: "Nivi Collections",
+  // TODO(harsha): full registered address including city, state and PIN.
+  address: "[ADDRESS PENDING]",
+  // TODO(harsha): contact number shown to customers.
+  phone: "[PHONE PENDING]",
+  // TODO(harsha): GSTIN, or set to null if not yet registered.
+  gstin: null as string | null,
+  /** Days from delivery within which a return may be raised. */
+  // TODO(harsha): confirm — 7 or 15 days.
+  returnWindowDays: 7,
+  /** Working days to dispatch a ready-to-ship piece. */
+  dispatchDays: "2 to 3",
+  /** Working days for a refund to reach the original payment method. */
+  refundDays: "5 to 7",
+};
+
 export const BRAND = {
   /** Header/footer wordmark. Rendered uppercase with wide letter-spacing. */
   name: "Nivi Collections",
