@@ -182,6 +182,41 @@ export async function updateProduct(
   return undefined;
 }
 
+const idList = z.array(z.uuid()).min(1);
+
+export async function bulkSetActive(
+  productIds: string[],
+  active: boolean,
+): Promise<void> {
+  await requireAdmin();
+  const ids = idList.parse(productIds);
+
+  const { error } = await createAdminClient()
+    .from("products")
+    .update({ active })
+    .in("id", ids);
+  if (error) throw error;
+
+  revalidatePath("/", "layout");
+}
+
+export async function bulkSetCategory(
+  productIds: string[],
+  categoryId: string,
+): Promise<void> {
+  await requireAdmin();
+  const ids = idList.parse(productIds);
+  const category = z.uuid().parse(categoryId);
+
+  const { error } = await createAdminClient()
+    .from("products")
+    .update({ category_id: category })
+    .in("id", ids);
+  if (error) throw error;
+
+  revalidatePath("/", "layout");
+}
+
 export async function deleteProduct(productId: string): Promise<void> {
   await requireAdmin();
   const supabase = createAdminClient();
