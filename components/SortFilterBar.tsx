@@ -27,6 +27,10 @@ export function SortFilterBar() {
     if (nextInStock) params.set("inStock", "1");
     else params.delete("inStock");
 
+    // A changed sort/filter can leave fewer pages than the one currently
+    // showing — start back at the first page rather than landing on a gap.
+    params.delete("page");
+
     const qs = params.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }

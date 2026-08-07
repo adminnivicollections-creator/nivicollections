@@ -48,18 +48,31 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 export async function getProducts(opts?: {
   categorySlug?: string;
   limit?: number;
+  /** 1-indexed. Paired with pageSize for offset pagination. */
+  page?: number;
+  pageSize?: number;
+  sort?: "newest" | "price_asc" | "price_desc";
 }): Promise<ProductWithMedia[]> {
   const supabase = await createClient();
   let query = supabase
     .from("products")
     .select(PRODUCT_SELECT)
-    .eq("active", true)
-    .order("created_at", { ascending: false });
+    .eq("active", true);
+
+  query =
+    opts?.sort === "price_asc"
+      ? query.order("price_paise", { ascending: true })
+      : opts?.sort === "price_desc"
+        ? query.order("price_paise", { ascending: false })
+        : query.order("created_at", { ascending: false });
 
   if (opts?.categorySlug) {
     query = query.eq("categories.slug", opts.categorySlug);
   }
-  if (opts?.limit) {
+  if (opts?.page && opts?.pageSize) {
+    const from = (opts.page - 1) * opts.pageSize;
+    query = query.range(from, from + opts.pageSize - 1);
+  } else if (opts?.limit) {
     query = query.limit(opts.limit);
   }
 
@@ -71,6 +84,25 @@ export async function getProducts(opts?: {
   return (data ?? [])
     .filter((p) => !opts?.categorySlug || p.categories !== null)
     .map(sortMedia);
+}
+
+/** Count for pagination — same active/category filter as getProducts, no rows fetched. */
+export async function getProductCount(categorySlug?: string): Promise<number> {
+  const supabase = await createClient();
+  const query = categorySlug
+    ? supabase
+        .from("products")
+        .select("id, categories!inner(slug)", { count: "exact", head: true })
+        .eq("active", true)
+        .eq("categories.slug", categorySlug)
+    : supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("active", true);
+
+  const { count, error } = await query;
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export async function getProductBySlug(
