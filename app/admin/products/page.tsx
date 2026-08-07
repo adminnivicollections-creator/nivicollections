@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Product } from "@/lib/supabase/types";
 import { ProductsTable } from "./ProductsTable";
+import { Pager } from "@/components/Pager";
 
 export const dynamic = "force-dynamic";
 
@@ -13,20 +14,32 @@ type Row = Product & {
   product_images: { storage_path: string; position: number }[];
 };
 
-export default async function AdminProductsPage() {
+const PAGE_SIZE = 50;
+
+export default async function AdminProductsPage({
+  searchParams,
+}: PageProps<"/admin/products">) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+
   const supabase = createAdminClient();
-  const [{ data: products, error }, { data: categories }] = await Promise.all([
+  const [{ data: products, error, count }, { data: categories }] = await Promise.all([
     supabase
       .from("products")
       .select(
         "*, product_variants(stock), categories(name), product_images(storage_path, position)",
+        { count: "exact" },
       )
       .order("created_at", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1)
       .overrideTypes<Row[]>(),
     supabase.from("categories").select("*").order("position"),
   ]);
 
   if (error) throw error;
+
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   return (
     <div className="py-10">
@@ -41,7 +54,10 @@ export default async function AdminProductsPage() {
           </Link>
         </div>
       ) : (
-        <ProductsTable products={products} categories={categories ?? []} />
+        <>
+          <ProductsTable products={products} categories={categories ?? []} />
+          <Pager page={page} totalPages={totalPages} />
+        </>
       )}
     </div>
   );

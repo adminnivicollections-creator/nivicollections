@@ -1,16 +1,25 @@
 import Link from "next/link";
-import { getAllReviews } from "@/lib/reviews";
+import { getPendingReviews, getDecidedReviews, type AdminReview } from "@/lib/reviews";
 import { setReviewStatus, replyToReview } from "./actions";
 import { ReplyForm } from "./ReplyForm";
+import { Pager } from "@/components/Pager";
 
 export const dynamic = "force-dynamic";
 
 const STARS = "★★★★★";
+const PAGE_SIZE = 30;
 
-export default async function AdminReviewsPage() {
-  const reviews = await getAllReviews();
-  const pending = reviews.filter((r) => r.status === "pending");
-  const decided = reviews.filter((r) => r.status !== "pending");
+export default async function AdminReviewsPage({
+  searchParams,
+}: PageProps<"/admin/reviews">) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+
+  const [pending, { reviews: decided, total }] = await Promise.all([
+    getPendingReviews(),
+    getDecidedReviews(page, PAGE_SIZE),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="py-10">
@@ -37,17 +46,14 @@ export default async function AdminReviewsPage() {
               <ReviewCard key={r.id} review={r} />
             ))}
           </ul>
+          <Pager page={page} totalPages={totalPages} />
         </>
       )}
     </div>
   );
 }
 
-function ReviewCard({
-  review: r,
-}: {
-  review: Awaited<ReturnType<typeof getAllReviews>>[number];
-}) {
+function ReviewCard({ review: r }: { review: AdminReview }) {
   const approve = setReviewStatus.bind(null, r.id, "approved");
   const reject = setReviewStatus.bind(null, r.id, "rejected");
   const reply = replyToReview.bind(null, r.id);

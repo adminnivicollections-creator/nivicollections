@@ -1,13 +1,22 @@
 import Link from "next/link";
-import { getAllQuestions } from "@/lib/questions";
+import { getUnansweredQuestions, getAnsweredQuestions } from "@/lib/questions";
 import { AnswerForm } from "./AnswerForm";
+import { Pager } from "@/components/Pager";
 
 export const dynamic = "force-dynamic";
+const PAGE_SIZE = 30;
 
-export default async function AdminQuestionsPage() {
-  const questions = await getAllQuestions();
-  const unanswered = questions.filter((q) => !q.answer);
-  const answered = questions.filter((q) => q.answer);
+export default async function AdminQuestionsPage({
+  searchParams,
+}: PageProps<"/admin/questions">) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+
+  const [unanswered, { questions: answered, total }] = await Promise.all([
+    getUnansweredQuestions(),
+    getAnsweredQuestions(page, PAGE_SIZE),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="py-10">
@@ -52,6 +61,7 @@ export default async function AdminQuestionsPage() {
               </li>
             ))}
           </ul>
+          <Pager page={page} totalPages={totalPages} />
         </>
       )}
     </div>

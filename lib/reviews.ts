@@ -113,16 +113,12 @@ export type AdminReview = ReviewWithReviewer & {
   productSlug: string;
 };
 
-/** Every review across the catalogue, newest first, for the moderation queue. */
-export async function getAllReviews(): Promise<AdminReview[]> {
-  const admin = createAdminClient();
-  const { data: reviews, error } = await admin
-    .from("reviews")
-    .select("*, products(name, slug)")
-    .order("created_at", { ascending: false })
-    .overrideTypes<(Review & { products: { name: string; slug: string } | null })[]>();
+type RawAdminReview = Review & { products: { name: string; slug: string } | null };
 
-  if (error) throw error;
+async function hydrateAdminReviews(
+  admin: ReturnType<typeof createAdminClient>,
+  reviews: RawAdminReview[],
+): Promise<AdminReview[]> {
   if (reviews.length === 0) return [];
 
   const { data: profiles, error: profilesError } = await admin
@@ -139,6 +135,44 @@ export async function getAllReviews(): Promise<AdminReview[]> {
     productName: products?.name ?? "Deleted product",
     productSlug: products?.slug ?? "",
   }));
+}
+
+/**
+ * Pending reviews only, unbounded — this is a moderation inbox, not a
+ * history. In practice it self-limits: admins clear it out, the same way
+ * getAllQuestions()'s unanswered list does.
+ */
+export async function getPendingReviews(): Promise<AdminReview[]> {
+  const admin = createAdminClient();
+  const { data: reviews, error } = await admin
+    .from("reviews")
+    .select("*, products(name, slug)")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .overrideTypes<RawAdminReview[]>();
+
+  if (error) throw error;
+  return hydrateAdminReviews(admin, reviews);
+}
+
+/** Already-decided reviews, paginated — this one genuinely grows without bound. */
+export async function getDecidedReviews(
+  page: number,
+  pageSize: number,
+): Promise<{ reviews: AdminReview[]; total: number }> {
+  const admin = createAdminClient();
+  const from = (page - 1) * pageSize;
+
+  const { data: reviews, error, count } = await admin
+    .from("reviews")
+    .select("*, products(name, slug)", { count: "exact" })
+    .neq("status", "pending")
+    .order("created_at", { ascending: false })
+    .range(from, from + pageSize - 1)
+    .overrideTypes<RawAdminReview[]>();
+
+  if (error) throw error;
+  return { reviews: await hydrateAdminReviews(admin, reviews), total: count ?? 0 };
 }
 
 function firstName(fullName: string | undefined | null): string | null {
