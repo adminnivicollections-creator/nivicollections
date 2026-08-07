@@ -10,6 +10,7 @@ import { formatINR } from "@/lib/config";
 import { ProductMedia } from "@/components/ProductMedia";
 import { ProductCard } from "@/components/ProductCard";
 import { WishlistHeart } from "@/components/WishlistHeart";
+import { ShareButton } from "@/components/ShareButton";
 import { Stars } from "@/components/Stars";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { TryOnWidget } from "@/components/TryOnWidget";
@@ -77,12 +78,14 @@ export default async function ProductPage({
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority
               />
-              <WishlistHeart
-                productId={product.id}
-                initialWishlisted={wishlist.has(product.id)}
-                path={path}
-                className="absolute right-3 top-3"
-              />
+              <div className="absolute right-3 top-3 flex flex-col gap-2">
+                <WishlistHeart
+                  productId={product.id}
+                  initialWishlisted={wishlist.has(product.id)}
+                  path={path}
+                />
+                <ShareButton name={product.name} path={path} />
+              </div>
             </div>
             {rest.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
