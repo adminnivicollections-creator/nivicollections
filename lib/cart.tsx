@@ -36,6 +36,9 @@ type CartContext = {
   count: number;
   subtotalPaise: number;
   hydrated: boolean;
+  drawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
 };
 
 const Ctx = createContext<CartContext | null>(null);
@@ -47,6 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [saved, setSaved] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Cart must start empty so SSR and the first client render agree;
   // localStorage is only readable after mount, hence the setState here.
@@ -84,7 +88,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       hydrated,
       count: lines.reduce((n, l) => n + l.qty, 0),
       subtotalPaise: lines.reduce((sum, l) => sum + l.pricePaise * l.qty, 0),
-      add: (line) =>
+      drawerOpen,
+      openDrawer: () => setDrawerOpen(true),
+      closeDrawer: () => setDrawerOpen(false),
+      add: (line) => {
         setLines((prev) => {
           const existing = prev.find((l) => l.variantId === line.variantId);
           if (!existing) return [...prev, { ...line, qty: 1 }];
@@ -93,7 +100,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
               ? { ...l, qty: Math.min(l.qty + 1, MAX_QTY_PER_LINE) }
               : l,
           );
-        }),
+        });
+        setDrawerOpen(true);
+      },
       setQty: (variantId, qty) =>
         setLines((prev) =>
           qty <= 0
@@ -136,7 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setSaved((prev) => prev.filter((l) => l.variantId !== variantId)),
       clear: () => setLines([]),
     }),
-    [lines, saved, hydrated],
+    [lines, saved, hydrated, drawerOpen],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

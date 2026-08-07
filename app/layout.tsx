@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BRAND } from "@/lib/config";
 import { BottomNav } from "@/components/BottomNav";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { CartDrawer } from "@/components/CartDrawer";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -63,6 +64,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Footer categories={categories} />
           <BottomNav shopHref={shopHref} signedIn={signedIn} />
           <WhatsAppButton />
+          <CartDrawer />
         </CartProvider>
       </body>
     </html>

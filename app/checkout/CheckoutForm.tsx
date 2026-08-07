@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/lib/cart";
-import { formatINR, shippingFor } from "@/lib/config";
+import { formatINR, imageUrl, shippingFor } from "@/lib/config";
 
 type RazorpayInstance = { open: () => void };
 declare global {
@@ -257,11 +258,25 @@ export function CheckoutForm() {
         </h2>
         <ul className="mt-5 space-y-4">
           {lines.map((l) => (
-            <li key={l.variantId} className="flex justify-between gap-4 text-sm text-[#f3e6cc]">
-              <span className="text-[#f3e6cc]/70">
+            <li key={l.variantId} className="flex items-center gap-4 text-sm text-[#f3e6cc]">
+              <div className="relative h-14 w-12 shrink-0 overflow-hidden bg-[#c59e5a]/10">
+                {l.imagePath && (
+                  <Image
+                    src={imageUrl(l.imagePath)}
+                    alt={l.name}
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                )}
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c59e5a] px-1 text-[9px] font-medium text-[#0b0906]">
+                  {l.qty}
+                </span>
+              </div>
+              <span className="flex-1 text-[#f3e6cc]/70">
                 {l.name}
                 <span className="block text-xs text-[#f3e6cc]/40">
-                  Size {l.size} × {l.qty}
+                  Size {l.size}
                 </span>
               </span>
               <span>{formatINR(l.pricePaise * l.qty)}</span>

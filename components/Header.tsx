@@ -15,7 +15,7 @@ export function Header({
   categories: Category[];
   signedIn: boolean;
 }) {
-  const { count, hydrated } = useCart();
+  const { count, hydrated, openDrawer } = useCart();
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const isActiveCategory = (slug: string) =>
@@ -57,10 +57,14 @@ export function Header({
           >
             {signedIn ? "Account" : "Sign in"}
           </Link>
-          <Link href="/cart" className="text-ink">
+          <button
+            type="button"
+            onClick={openDrawer}
+            className="text-ink"
+          >
             {/* Suppress the count until hydration so SSR and client agree. */}
             Cart{hydrated ? ` (${count})` : ""}
-          </Link>
+          </button>
         </div>
       </div>
 
