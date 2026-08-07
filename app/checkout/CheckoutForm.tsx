@@ -41,7 +41,11 @@ export function CheckoutForm({
   const [busy, setBusy] = useState(false);
 
   const [couponInput, setCouponInput] = useState("");
-  const [coupon, setCoupon] = useState<{ code: string; discountPaise: number } | null>(null);
+  const [coupon, setCoupon] = useState<{
+    code: string;
+    discountPaise: number;
+    freeShipping: boolean;
+  } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
 
@@ -81,7 +85,9 @@ export function CheckoutForm({
 
   const discount = coupon?.discountPaise ?? 0;
   const shipping =
-    subtotalPaise <= 0 || subtotalPaise >= freeShippingAbovePaise ? 0 : flatShippingPaise;
+    coupon?.freeShipping || subtotalPaise <= 0 || subtotalPaise >= freeShippingAbovePaise
+      ? 0
+      : flatShippingPaise;
   const total = subtotalPaise - discount + shipping;
 
   async function applyCoupon() {
@@ -92,14 +98,21 @@ export function CheckoutForm({
       const res = await fetch("/api/coupons/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponInput, subtotalPaise }),
+        body: JSON.stringify({
+          code: couponInput,
+          items: lines.map((l) => ({ variantId: l.variantId, qty: l.qty })),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setCoupon(null);
         setCouponError(data.error ?? "Could not apply that code.");
       } else {
-        setCoupon({ code: data.code, discountPaise: data.discountPaise });
+        setCoupon({
+          code: data.code,
+          discountPaise: data.discountPaise,
+          freeShipping: data.freeShipping,
+        });
       }
     } catch {
       setCouponError("Could not apply that code.");
@@ -325,7 +338,10 @@ export function CheckoutForm({
         <div className="mt-6 border-t border-[#c59e5a]/20 pt-4">
           {coupon ? (
             <div className="flex items-center justify-between text-sm">
-              <span className="text-[#c59e5a]">{coupon.code} applied</span>
+              <span className="text-[#c59e5a]">
+                {coupon.code} applied
+                {coupon.freeShipping && discount === 0 && " — free shipping"}
+              </span>
               <button
                 type="button"
                 onClick={() => {

@@ -135,13 +135,22 @@ export async function POST(request: NextRequest) {
 
   let discount = 0;
   let appliedCode = "";
+  let couponFreeShipping = false;
   if (couponCode) {
-    const result = await validateCoupon(couponCode, subtotal);
+    const result = await validateCoupon(
+      couponCode,
+      lines.map((l) => ({
+        variantId: l.variant_id,
+        unitPricePaise: l.unit_price_paise,
+        qty: l.qty,
+      })),
+    );
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
     discount = result.discountPaise;
     appliedCode = result.coupon.code;
+    couponFreeShipping = result.freeShipping;
   }
 
   // Live from the database rather than the static config default, so an
@@ -159,7 +168,7 @@ export async function POST(request: NextRequest) {
     );
   }
   const shipping =
-    subtotal >= settings.free_shipping_above_paise
+    couponFreeShipping || subtotal >= settings.free_shipping_above_paise
       ? 0
       : settings.flat_shipping_paise;
   const total = subtotal - discount + shipping;

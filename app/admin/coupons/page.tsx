@@ -43,9 +43,11 @@ export default async function AdminCouponsPage() {
                 <tr key={c.id}>
                   <td className="py-4 pr-4 font-mono">{c.code}</td>
                   <td className="py-4 pr-4">
-                    {c.discount_type === "percent"
-                      ? `${c.discount_value}%`
-                      : formatINR(c.discount_value)}
+                    {c.discount_type === "percent" && `${c.discount_value}% off`}
+                    {c.discount_type === "flat" && `${formatINR(c.discount_value ?? 0)} off`}
+                    {c.discount_type === "buy_x_get_y" &&
+                      `Buy ${c.buy_qty}, get ${c.get_qty} free`}
+                    {c.discount_type === "free_shipping" && "Free shipping"}
                   </td>
                   <td className="py-4 pr-4 text-ink/60">
                     {c.min_subtotal_paise > 0

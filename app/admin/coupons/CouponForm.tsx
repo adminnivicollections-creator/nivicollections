@@ -3,13 +3,15 @@
 import { useActionState, useState } from "react";
 import { createCoupon } from "./actions";
 
+type DiscountType = "percent" | "flat" | "buy_x_get_y" | "free_shipping";
+
 const field =
   "mt-1 w-full border border-ink/20 bg-transparent px-4 py-2.5 text-sm outline-none focus:border-ink";
 const label = "text-[11px] uppercase tracking-[0.2em] text-ink/60";
 
 export function CouponForm() {
   const [state, formAction, pending] = useActionState(createCoupon, undefined);
-  const [type, setType] = useState<"percent" | "flat">("percent");
+  const [type, setType] = useState<DiscountType>("percent");
 
   return (
     <form action={formAction} className="mt-6 max-w-2xl space-y-5">
@@ -43,27 +45,32 @@ export function CouponForm() {
             id="discountType"
             name="discountType"
             value={type}
-            onChange={(e) => setType(e.target.value as "percent" | "flat")}
+            onChange={(e) => setType(e.target.value as DiscountType)}
             className={field}
           >
             <option value="percent">Percent off</option>
             <option value="flat">Flat amount off (₹)</option>
+            <option value="buy_x_get_y">Buy X, get Y free (same item)</option>
+            <option value="free_shipping">Free shipping</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="discountValue" className={label}>
-            {type === "percent" ? "Percent" : "Amount (₹)"}
-          </label>
-          <input
-            id="discountValue"
-            name="discountValue"
-            type="number"
-            min="1"
-            max={type === "percent" ? 100 : undefined}
-            required
-            className={field}
-          />
-        </div>
+
+        {(type === "percent" || type === "flat") && (
+          <div>
+            <label htmlFor="discountValue" className={label}>
+              {type === "percent" ? "Percent" : "Amount (₹)"}
+            </label>
+            <input
+              id="discountValue"
+              name="discountValue"
+              type="number"
+              min="1"
+              max={type === "percent" ? 100 : undefined}
+              required
+              className={field}
+            />
+          </div>
+        )}
         {type === "percent" && (
           <div>
             <label htmlFor="maxDiscountRupees" className={label}>
@@ -78,7 +85,46 @@ export function CouponForm() {
             />
           </div>
         )}
+
+        {type === "buy_x_get_y" && (
+          <>
+            <div>
+              <label htmlFor="buyQty" className={label}>
+                Buy quantity
+              </label>
+              <input
+                id="buyQty"
+                name="buyQty"
+                type="number"
+                min="1"
+                required
+                placeholder="2"
+                className={field}
+              />
+            </div>
+            <div>
+              <label htmlFor="getQty" className={label}>
+                Free quantity
+              </label>
+              <input
+                id="getQty"
+                name="getQty"
+                type="number"
+                min="1"
+                required
+                placeholder="1"
+                className={field}
+              />
+            </div>
+          </>
+        )}
       </div>
+      {type === "buy_x_get_y" && (
+        <p className="-mt-2 text-xs text-ink/40">
+          Applies per line item, same product only — e.g. buy 2 get 1 free
+          means every 3 units of one saree in a cart gives 1 free.
+        </p>
+      )}
 
       <div className="grid gap-5 sm:grid-cols-3">
         <div>

@@ -2,17 +2,26 @@ import "server-only";
 import { createAdminClient } from "./supabase/admin";
 import type { Coupon } from "./supabase/types";
 
+export type CouponLine = {
+  variantId: string;
+  unitPricePaise: number;
+  qty: number;
+};
+
 export type CouponValidation =
-  | { ok: true; coupon: Coupon; discountPaise: number }
+  | { ok: true; coupon: Coupon; discountPaise: number; freeShipping: boolean }
   | { ok: false; error: string };
 
 /**
- * The only place a discount is computed. Called from /api/checkout with a
- * server-known subtotal — never trust a discount amount sent by the browser.
+ * The only place a discount is computed. Called from /api/checkout with
+ * server-known line items (variant id, real price, qty) — never trust a
+ * discount amount, or even a subtotal, sent by the browser. Cart lines
+ * rather than just a subtotal because buy_x_get_y needs to see per-product
+ * quantities, not just the total.
  */
 export async function validateCoupon(
   rawCode: string,
-  subtotalPaise: number,
+  lines: CouponLine[],
 ): Promise<CouponValidation> {
   const code = rawCode.trim().toUpperCase();
   if (!code) return { ok: false, error: "Enter a coupon code." };
@@ -41,6 +50,8 @@ export async function validateCoupon(
   ) {
     return { ok: false, error: "That coupon has been fully redeemed." };
   }
+
+  const subtotalPaise = lines.reduce((sum, l) => sum + l.unitPricePaise * l.qty, 0);
   if (subtotalPaise < coupon.min_subtotal_paise) {
     return {
       ok: false,
@@ -48,10 +59,30 @@ export async function validateCoupon(
     };
   }
 
-  let discountPaise =
-    coupon.discount_type === "percent"
-      ? Math.round((subtotalPaise * coupon.discount_value) / 100)
-      : coupon.discount_value;
+  let discountPaise = 0;
+  const freeShipping = coupon.discount_type === "free_shipping";
+
+  if (coupon.discount_type === "percent") {
+    discountPaise = Math.round((subtotalPaise * (coupon.discount_value ?? 0)) / 100);
+  } else if (coupon.discount_type === "flat") {
+    discountPaise = coupon.discount_value ?? 0;
+  } else if (coupon.discount_type === "buy_x_get_y") {
+    const groupSize = (coupon.buy_qty ?? 0) + (coupon.get_qty ?? 0);
+    if (groupSize > 0) {
+      for (const line of lines) {
+        const freeUnits = Math.floor(line.qty / groupSize) * (coupon.get_qty ?? 0);
+        discountPaise += freeUnits * line.unitPricePaise;
+      }
+    }
+    if (discountPaise === 0) {
+      return {
+        ok: false,
+        error: `Add ${groupSize} or more of the same item to use this code.`,
+      };
+    }
+  }
+  // free_shipping has no subtotal discount component — discountPaise stays 0,
+  // freeShipping carries the actual benefit.
 
   if (coupon.max_discount_paise !== null) {
     discountPaise = Math.min(discountPaise, coupon.max_discount_paise);
@@ -59,5 +90,5 @@ export async function validateCoupon(
   // A discount can never exceed what is being bought.
   discountPaise = Math.min(discountPaise, subtotalPaise);
 
-  return { ok: true, coupon, discountPaise };
+  return { ok: true, coupon, discountPaise, freeShipping };
 }

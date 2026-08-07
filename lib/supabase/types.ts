@@ -141,16 +141,18 @@ export type Wishlist = {
   created_at: string;
 };
 
-export type DiscountType = "percent" | "flat";
+export type DiscountType = "percent" | "flat" | "buy_x_get_y" | "free_shipping";
 
 export type Coupon = {
   id: string;
   code: string;
   description: string;
   discount_type: DiscountType;
-  discount_value: number;
+  discount_value: number | null;
   min_subtotal_paise: number;
   max_discount_paise: number | null;
+  buy_qty: number | null;
+  get_qty: number | null;
   starts_at: string | null;
   expires_at: string | null;
   max_redemptions: number | null;
