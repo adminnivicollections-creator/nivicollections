@@ -48,5 +48,9 @@ export async function getFrequentlyBoughtWith(
     .slice(0, limit)
     .map(([id]) => id);
 
-  return getProductsByIds(topIds);
+  // Postgres's `id IN (...)` makes no promise about result order, so the
+  // ranking above would otherwise be silently discarded.
+  const products = await getProductsByIds(topIds);
+  const rank = new Map(topIds.map((id, i) => [id, i]));
+  return products.sort((a, b) => rank.get(a.id)! - rank.get(b.id)!);
 }
