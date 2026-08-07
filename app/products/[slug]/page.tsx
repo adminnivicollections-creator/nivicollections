@@ -6,7 +6,7 @@ import { getWishlistProductIds } from "@/lib/wishlist";
 import { getReviewSummary } from "@/lib/reviews";
 import { getFrequentlyBoughtWith } from "@/lib/recommendations";
 import { getUserId } from "@/lib/auth";
-import { formatINR } from "@/lib/config";
+import { formatINR, imageUrl } from "@/lib/config";
 import { ProductMedia } from "@/components/ProductMedia";
 import { ProductCard } from "@/components/ProductCard";
 import { WishlistHeart } from "@/components/WishlistHeart";
@@ -25,9 +25,19 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Not found" };
+
+  const hero = product.product_images[0];
+  const description = product.description.slice(0, 160);
   return {
     title: product.name,
-    description: product.description.slice(0, 160),
+    description,
+    openGraph: hero
+      ? {
+          title: product.name,
+          description,
+          images: [{ url: imageUrl(hero.storage_path) }],
+        }
+      : undefined,
   };
 }
 
