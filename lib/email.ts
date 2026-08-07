@@ -140,6 +140,88 @@ export async function sendShippingNotice(orderId: string): Promise<void> {
   }
 }
 
+/**
+ * Nudges a customer who submitted checkout but never paid. Cart contents
+ * live only in the customer's own browser localStorage — this order row,
+ * created right before payment, is the earliest point that "someone started
+ * buying this" becomes visible to the server at all.
+ */
+export async function sendAbandonedCartEmail(
+  orderId: string,
+  stage: 1 | 2,
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.ORDER_EMAIL_FROM;
+  if (!apiKey || !from) {
+    console.warn("RESEND_API_KEY or ORDER_EMAIL_FROM unset — skipping email");
+    return;
+  }
+
+  const { data: order, error } = await createAdminClient()
+    .from("orders")
+    .select("*, order_items(*)")
+    .eq("id", orderId)
+    .maybeSingle()
+    .overrideTypes<Order & { order_items: OrderItem[] }>();
+
+  if (error) throw error;
+  if (!order) throw new Error(`Order ${orderId} not found`);
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const rows = order.order_items
+    .map(
+      (i) => `<tr>
+        <td style="padding:8px 0">${escapeHtml(i.product_name)} — ${escapeHtml(i.size)} × ${i.qty}</td>
+        <td style="padding:8px 0;text-align:right">${formatINR(i.unit_price_paise * i.qty)}</td>
+      </tr>`,
+    )
+    .join("");
+
+  const subject =
+    stage === 1
+      ? "You left something behind"
+      : "Still thinking it over? Your pieces are waiting";
+
+  const html = `
+    <div style="font-family:Georgia,serif;max-width:520px;color:#241f1b">
+      <h1 style="font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:18px">
+        ${escapeHtml(BRAND.name)}
+      </h1>
+      <p>Your cart is still here, whenever you're ready.</p>
+      <table style="width:100%;border-top:1px solid #ddd;border-bottom:1px solid #ddd;margin:16px 0">
+        ${rows}
+      </table>
+      <p style="text-align:right;margin:0 0 24px"><strong>${formatINR(order.total_paise)}</strong></p>
+      <a href="${siteUrl}/cart"
+         style="display:inline-block;background:#c59e5a;color:#0b0906;padding:14px 28px;
+                text-decoration:none;font-size:12px;letter-spacing:.15em;text-transform:uppercase">
+        Complete your order
+      </a>
+      <p style="color:#666;font-size:12px;margin-top:24px">
+        If you didn't mean to start this order, you can ignore this email.
+        Questions? Write to ${escapeHtml(BRAND.email)}.
+      </p>
+    </div>`;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: `${BRAND.name} <${from}>`,
+      to: [order.email],
+      subject,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Resend failed (${res.status}): ${await res.text()}`);
+  }
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

@@ -109,6 +109,8 @@ export type Order = {
   gift_wrap: boolean;
   shipped_at: string | null;
   delivered_at: string | null;
+  abandoned_email_1_sent_at: string | null;
+  abandoned_email_2_sent_at: string | null;
   created_at: string;
   updated_at: string;
 };
