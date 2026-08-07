@@ -49,9 +49,16 @@ export async function POST(request: NextRequest) {
     p_order_id: updated.id,
   });
   if (stockError) {
-    // Payment succeeded but stock ran out: keep the money-state truthful and
-    // flag it for a human rather than silently overselling.
+    // Payment succeeded but stock ran out: keep the money-state truthful
+    // rather than silently overselling, and flag it somewhere an admin will
+    // actually see it — a server log alone is not a real alert.
     console.error(`Oversold on order ${updated.order_number}`, stockError);
+    await admin
+      .from("orders")
+      .update({
+        admin_note: `⚠ OVERSOLD — payment captured but stock could not be reserved (${stockError.message}). Confirm availability with the customer before packing.`,
+      })
+      .eq("id", updated.id);
   }
 
   if (updated.coupon_code) {

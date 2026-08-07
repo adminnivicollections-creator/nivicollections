@@ -73,7 +73,7 @@ export async function updateOrder(
     return { error: "Add a tracking number before marking an order shipped." };
   }
 
-  const { error } = await admin
+  const { data: updatedRows, error } = await admin
     .from("orders")
     .update({
       status,
@@ -86,9 +86,19 @@ export async function updateOrder(
     .eq("id", orderId)
     // Only write if the row still looks the way we checked it, so two admins
     // editing at once cannot skip a transition.
-    .eq("status", order.status);
+    .eq("status", order.status)
+    .select("id");
 
   if (error) return { error: error.message };
+  // A matched-zero-rows update returns no error — it just silently does
+  // nothing. Without this check, a losing admin in a race would see "saved"
+  // and, worse, still send a "shipped" email below for a status that never
+  // actually changed.
+  if (!updatedRows || updatedRows.length === 0) {
+    return {
+      error: "This order was changed by someone else. Refresh and try again.",
+    };
+  }
 
   if (changingStatus && status === "shipped") {
     try {

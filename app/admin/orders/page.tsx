@@ -31,6 +31,7 @@ export default async function AdminOrdersPage({
   const revenue = orders
     .filter((o) => !["pending_payment", "cancelled", "refunded"].includes(o.status))
     .reduce((sum, o) => sum + o.total_paise, 0);
+  const oversold = orders.filter((o) => o.admin_note.startsWith("⚠ OVERSOLD"));
 
   return (
     <div className="py-10">
@@ -60,6 +61,23 @@ export default async function AdminOrdersPage({
           </dd>
         </div>
       </dl>
+
+      {oversold.length > 0 && (
+        <div className="mt-6 border border-red-700/40 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {oversold.length} paid order{oversold.length === 1 ? "" : "s"} could
+          not reserve stock and need{oversold.length === 1 ? "s" : ""} a manual
+          check —{" "}
+          {oversold.map((o, i) => (
+            <span key={o.id}>
+              {i > 0 && ", "}
+              <Link href={`/admin/orders/${o.id}`} className="underline">
+                {o.order_number}
+              </Link>
+            </span>
+          ))}
+          .
+        </div>
+      )}
 
       <form className="mt-6 max-w-xs">
         <input
@@ -119,6 +137,11 @@ export default async function AdminOrdersPage({
                     >
                       {o.status.replace("_", " ")}
                     </span>
+                    {o.admin_note.startsWith("⚠ OVERSOLD") && (
+                      <span className="ml-2 text-red-700" title={o.admin_note}>
+                        ⚠ oversold
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
