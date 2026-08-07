@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { validateCoupon } from "@/lib/coupons";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 // Preview only, for showing the discount before payment. The real checkout
 // route re-validates from scratch and is the only place a discount is ever
@@ -11,6 +12,15 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Also guards against brute-forcing coupon codes by trying every string
+  // in a wordlist, not just abuse volume.
+  if (!(await checkRateLimit(request, "coupon-validate", 300, 20))) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please wait a few minutes and try again." },
+      { status: 429 },
+    );
+  }
+
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Malformed request." }, { status: 400 });

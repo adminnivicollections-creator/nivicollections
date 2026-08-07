@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createRazorpayOrder } from "@/lib/razorpay";
 import { validateCoupon } from "@/lib/coupons";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 // The browser sends variant ids and quantities only. Names, prices, stock and
 // totals are all read from the database here — a tampered cart cannot change
@@ -36,6 +37,15 @@ const schema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Each attempt writes an order row and calls Razorpay — the endpoint that
+  // most needs a strict limit, since it's also the most expensive to abuse.
+  if (!(await checkRateLimit(request, "checkout", 300, 10))) {
+    return NextResponse.json(
+      { error: "Too many attempts. Please wait a few minutes and try again." },
+      { status: 429 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

@@ -195,6 +195,12 @@ export type TryonUsage = {
   count: number;
 };
 
+export type RateLimit = {
+  key: string;
+  window_start: string;
+  count: number;
+};
+
 export type HomepageSettings = {
   id: true;
   hero_image_path: string | null;
@@ -270,6 +276,7 @@ export type Database = {
       product_questions: Table<ProductQuestion>;
       product_answers: Table<ProductAnswer>;
       tryon_usage: Table<TryonUsage>;
+      rate_limits: Table<RateLimit>;
       homepage_settings: Table<HomepageSettings>;
       store_settings: Table<StoreSettings>;
       order_status_history: Table<OrderStatusHistory>;
@@ -289,6 +296,10 @@ export type Database = {
       increment_tryon_usage: {
         Args: { p_user_id: string; p_max: number };
         Returns: number;
+      };
+      check_rate_limit: {
+        Args: { p_key: string; p_window_seconds: number; p_max: number };
+        Returns: boolean;
       };
       create_order: {
         Args: {
