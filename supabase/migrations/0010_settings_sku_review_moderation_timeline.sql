@@ -23,7 +23,7 @@ insert into public.store_settings (
   id, legal_name, support_email, support_phone, address,
   return_window_days, free_shipping_above_paise, flat_shipping_paise
 ) values (
-  true, 'Nivi Collections', 'hello@nivicollections.com', '+91 93939 79892',
+  true, 'Nivi Collections', 'contact@nivicollections.com', '+91 93939 79892',
   'Street 5, Boduppal, Chengicherla, Secunderabad, Telangana 500092',
   7, 150000, 9900
 );

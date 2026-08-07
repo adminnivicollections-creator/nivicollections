@@ -32,8 +32,7 @@ export const BRAND = {
   name: "Nivi Collections",
   legalName: "Nivi Collections",
   tagline: "Timeless elegance, woven for you",
-  // TODO(harsha): confirm the address customers should write to.
-  email: "hello@nivicollections.com",
+  email: "contact@nivicollections.com",
   supportHours: "Mon to Sat, 10am to 6pm IST",
 };
 
