@@ -207,6 +207,14 @@ export type HomepageSettings = {
   updated_at: string;
 };
 
+export type HomepageSlide = {
+  id: string;
+  image_path: string;
+  link_href: string | null;
+  position: number;
+  created_at: string;
+};
+
 export type StoreSettings = {
   id: true;
   legal_name: string;
@@ -278,6 +286,7 @@ export type Database = {
       tryon_usage: Table<TryonUsage>;
       rate_limits: Table<RateLimit>;
       homepage_settings: Table<HomepageSettings>;
+      homepage_slides: Table<HomepageSlide>;
       store_settings: Table<StoreSettings>;
       order_status_history: Table<OrderStatusHistory>;
       refunds: Table<Refund>;
