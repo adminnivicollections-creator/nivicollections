@@ -24,9 +24,10 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
+  // `||` deliberately, not `??` — an env var set to an empty string (as
+  // opposed to unset) must still fall back, or new URL("") crashes the
+  // entire build with no indication why.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: {
     default: `${BRAND.legalName} | Handcrafted Indian Occasion Wear`,
     template: `%s | ${BRAND.legalName}`,
