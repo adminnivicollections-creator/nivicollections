@@ -75,6 +75,16 @@ export async function Reviews({
                   {r.body}
                 </p>
               )}
+              {r.admin_reply && (
+                <div className="mt-3 border-l-2 border-[#c59e5a]/40 pl-4">
+                  <p className="text-[11px] uppercase tracking-[0.15em] text-[#c59e5a]">
+                    Nivi Collections replied
+                  </p>
+                  <p className="mt-1 text-sm text-[#f3e6cc]/70">
+                    {r.admin_reply}
+                  </p>
+                </div>
+              )}
             </li>
           ))}
         </ul>

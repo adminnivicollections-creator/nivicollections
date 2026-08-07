@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { createRazorpayOrder } from "@/lib/razorpay";
-import { shippingFor } from "@/lib/config";
 import { validateCoupon } from "@/lib/coupons";
 
 // The browser sends variant ids and quantities only. Names, prices, stock and
@@ -135,7 +134,24 @@ export async function POST(request: NextRequest) {
     appliedCode = result.coupon.code;
   }
 
-  const shipping = shippingFor(subtotal);
+  // Live from the database rather than the static config default, so an
+  // admin changing the free-shipping threshold actually changes what a
+  // customer is charged — not just what the storefront displays.
+  const { data: settings, error: settingsError } = await admin
+    .from("store_settings")
+    .select("free_shipping_above_paise, flat_shipping_paise")
+    .eq("id", true)
+    .single();
+  if (settingsError || !settings) {
+    return NextResponse.json(
+      { error: "Could not load shipping settings." },
+      { status: 500 },
+    );
+  }
+  const shipping =
+    subtotal >= settings.free_shipping_above_paise
+      ? 0
+      : settings.flat_shipping_paise;
   const total = subtotal - discount + shipping;
 
   // Attach the order to the signed-in user when there is one; guests get null.

@@ -109,6 +109,31 @@ export function ProductForm({
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
+          <label htmlFor="sku" className={label}>
+            SKU (optional)
+          </label>
+          <input
+            id="sku"
+            name="sku"
+            defaultValue={product?.sku ?? ""}
+            className={field}
+          />
+        </div>
+        <div>
+          <label htmlFor="barcode" className={label}>
+            Barcode (optional)
+          </label>
+          <input
+            id="barcode"
+            name="barcode"
+            defaultValue={product?.barcode ?? ""}
+            className={field}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
           <label htmlFor="priceRupees" className={label}>
             Price (₹)
           </label>

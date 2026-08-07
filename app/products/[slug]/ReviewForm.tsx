@@ -20,7 +20,7 @@ export function ReviewForm({
   if (state && "ok" in state) {
     return (
       <p className="mt-8 border border-[#c59e5a]/40 bg-[#c59e5a]/10 px-5 py-4 text-sm text-[#f3e6cc]">
-        Thank you — your review is live.
+        Thank you — your review has been submitted and will appear once approved.
       </p>
     );
   }

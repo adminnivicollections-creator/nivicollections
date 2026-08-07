@@ -10,13 +10,20 @@ type Row = Order & { order_items: { qty: number }[] };
 // Orders needing action, most urgent first. Everything else is history.
 const ACTIONABLE = new Set(["paid", "packed"]);
 
-export default async function AdminOrdersPage() {
-  const { data: orders, error } = await createAdminClient()
+export default async function AdminOrdersPage({
+  searchParams,
+}: PageProps<"/admin/orders">) {
+  const params = await searchParams;
+  const q = typeof params.q === "string" ? params.q : "";
+
+  const query = createAdminClient()
     .from("orders")
     .select("*, order_items(qty)")
     .order("created_at", { ascending: false })
-    .limit(200)
-    .overrideTypes<Row[]>();
+    .limit(200);
+  if (q) query.ilike("email", `%${q}%`);
+
+  const { data: orders, error } = await query.overrideTypes<Row[]>();
 
   if (error) throw error;
 
@@ -54,8 +61,20 @@ export default async function AdminOrdersPage() {
         </div>
       </dl>
 
+      <form className="mt-6 max-w-xs">
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="Search by email"
+          className="w-full border border-ink/20 bg-transparent px-4 py-2 text-sm outline-none focus:border-ink"
+        />
+      </form>
+
       {orders.length === 0 ? (
-        <p className="py-20 text-center text-ink/60">No orders yet.</p>
+        <p className="py-20 text-center text-ink/60">
+          {q ? `No orders matching "${q}".` : "No orders yet."}
+        </p>
       ) : (
         <div className="mt-8 overflow-x-auto">
           <table className="w-full text-left text-sm">

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth";
+import type { Product, ProductVariant } from "@/lib/supabase/types";
 
 // Server Actions are public HTTP endpoints, so every one of these re-checks
 // admin rather than trusting that the caller came from the admin UI.
@@ -23,6 +24,8 @@ const productSchema = z.object({
     .max(200),
   description: z.string().trim().max(5000).default(""),
   categoryId: z.uuid(),
+  sku: z.string().trim().max(60).optional(),
+  barcode: z.string().trim().max(60).optional(),
   // Entered in rupees, stored in paise.
   priceRupees: z.coerce.number().min(0).max(10_000_000),
   compareAtRupees: z.coerce.number().min(0).max(10_000_000).optional(),
@@ -45,6 +48,8 @@ function readProductForm(formData: FormData) {
     slug: formData.get("slug"),
     description: formData.get("description") ?? "",
     categoryId: formData.get("categoryId"),
+    sku: formData.get("sku") || undefined,
+    barcode: formData.get("barcode") || undefined,
     priceRupees: formData.get("priceRupees"),
     compareAtRupees: formData.get("compareAtRupees") || undefined,
     readyToShip: formData.get("readyToShip") === "on",
@@ -54,6 +59,12 @@ function readProductForm(formData: FormData) {
 }
 
 export type ActionResult = { error: string } | undefined;
+
+function describeUniqueViolation(error: { code?: string; message: string }): string {
+  if (error.code !== "23505") return error.message;
+  if (error.message.includes("sku")) return "That SKU is already used by another product.";
+  return "That URL slug is already used by another product.";
+}
 
 export async function createProduct(
   _prev: ActionResult,
@@ -78,6 +89,8 @@ export async function createProduct(
       slug: p.slug,
       description: p.description,
       category_id: p.categoryId,
+      sku: p.sku || null,
+      barcode: p.barcode || null,
       price_paise: Math.round(p.priceRupees * 100),
       compare_at_paise: p.compareAtRupees
         ? Math.round(p.compareAtRupees * 100)
@@ -89,12 +102,7 @@ export async function createProduct(
     .single();
 
   if (error) {
-    return {
-      error:
-        error.code === "23505"
-          ? "That URL slug is already used by another product."
-          : error.message,
-    };
+    return { error: describeUniqueViolation(error) };
   }
 
   const { error: variantError } = await supabase.from("product_variants").insert(
@@ -133,6 +141,8 @@ export async function updateProduct(
       slug: p.slug,
       description: p.description,
       category_id: p.categoryId,
+      sku: p.sku || null,
+      barcode: p.barcode || null,
       price_paise: Math.round(p.priceRupees * 100),
       compare_at_paise: p.compareAtRupees
         ? Math.round(p.compareAtRupees * 100)
@@ -143,12 +153,7 @@ export async function updateProduct(
     .eq("id", productId);
 
   if (error) {
-    return {
-      error:
-        error.code === "23505"
-          ? "That URL slug is already used by another product."
-          : error.message,
-    };
+    return { error: describeUniqueViolation(error) };
   }
 
   // Sizes are replaced wholesale, but only after re-inserting succeeds would
@@ -190,6 +195,69 @@ export async function deleteProduct(productId: string): Promise<void> {
 
   revalidatePath("/", "layout");
   redirect("/admin/products");
+}
+
+export async function duplicateProduct(productId: string): Promise<void> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const { data: original, error: findError } = await supabase
+    .from("products")
+    .select("*, product_variants(*)")
+    .eq("id", productId)
+    .single()
+    .overrideTypes<Product & { product_variants: ProductVariant[] }>();
+  if (findError) throw findError;
+
+  // Slug must stay unique; try "-copy", then "-copy-2", "-copy-3", ...
+  let slug = `${original.slug}-copy`;
+  let suffix = 2;
+  for (;;) {
+    const { data: existing } = await supabase
+      .from("products")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (!existing) break;
+    slug = `${original.slug}-copy-${suffix++}`;
+  }
+
+  const { data: copy, error: insertError } = await supabase
+    .from("products")
+    .insert({
+      name: `${original.name} (Copy)`,
+      slug,
+      description: original.description,
+      category_id: original.category_id,
+      // sku/barcode are not copied — they're unique per product, and a
+      // duplicate needs its own before it can go live.
+      price_paise: original.price_paise,
+      compare_at_paise: original.compare_at_paise,
+      ready_to_ship: original.ready_to_ship,
+      // Hidden until the admin actually reviews it, so a duplicate never
+      // goes live half-edited.
+      active: false,
+    })
+    .select("id")
+    .single();
+  if (insertError) throw insertError;
+
+  if (original.product_variants.length > 0) {
+    const { error: variantError } = await supabase.from("product_variants").insert(
+      original.product_variants.map((v: { size: string; position: number }, i: number) => ({
+        product_id: copy.id,
+        size: v.size,
+        // Not copied: the duplicate is a new listing, not a second claim on
+        // the original's physical stock.
+        stock: 0,
+        position: i,
+      })),
+    );
+    if (variantError) throw variantError;
+  }
+
+  revalidatePath("/", "layout");
+  redirect(`/admin/products/${copy.id}`);
 }
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;

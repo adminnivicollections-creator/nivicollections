@@ -45,6 +45,7 @@ export default async function AdminProductsPage() {
               <tr>
                 <th className="py-3 pr-4 font-normal" />
                 <th className="py-3 pr-4 font-normal">Product</th>
+                <th className="py-3 pr-4 font-normal">SKU</th>
                 <th className="py-3 pr-4 font-normal">Category</th>
                 <th className="py-3 pr-4 font-normal">Price</th>
                 <th className="py-3 pr-4 font-normal">Stock</th>
@@ -87,6 +88,7 @@ export default async function AdminProductsPage() {
                         {p.name}
                       </Link>
                     </td>
+                    <td className="py-4 pr-4 text-ink/60">{p.sku ?? "—"}</td>
                     <td className="py-4 pr-4 text-ink/60">
                       {p.categories?.name ?? "—"}
                     </td>

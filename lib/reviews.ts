@@ -14,6 +14,10 @@ export type ReviewSummary = { average: number; count: number };
 // reviews.user_id and profiles.id both reference auth.users independently,
 // with no FK directly between them, so PostgREST cannot auto-join the two.
 // Only the first name is ever sent to the client.
+//
+// The admin client bypasses RLS entirely, so the approved-only filter has to
+// be explicit here — the "approved reviews are publicly readable" policy
+// gives no protection to a query running as the service role.
 export async function getProductReviews(
   productId: string,
 ): Promise<ReviewWithReviewer[]> {
@@ -22,6 +26,7 @@ export async function getProductReviews(
     .from("reviews")
     .select("*")
     .eq("product_id", productId)
+    .eq("status", "approved")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -47,7 +52,8 @@ export async function getReviewSummary(
   const { data, error } = await createAdminClient()
     .from("reviews")
     .select("rating")
-    .eq("product_id", productId);
+    .eq("product_id", productId)
+    .eq("status", "approved");
 
   if (error) throw error;
   if (data.length === 0) return { average: 0, count: 0 };
@@ -100,6 +106,39 @@ export async function getReviewableOrderItems(
       orderNumber: d.orders.order_number,
       deliveredAt: d.orders.delivered_at,
     }));
+}
+
+export type AdminReview = ReviewWithReviewer & {
+  productName: string;
+  productSlug: string;
+};
+
+/** Every review across the catalogue, newest first, for the moderation queue. */
+export async function getAllReviews(): Promise<AdminReview[]> {
+  const admin = createAdminClient();
+  const { data: reviews, error } = await admin
+    .from("reviews")
+    .select("*, products(name, slug)")
+    .order("created_at", { ascending: false })
+    .overrideTypes<(Review & { products: { name: string; slug: string } | null })[]>();
+
+  if (error) throw error;
+  if (reviews.length === 0) return [];
+
+  const { data: profiles, error: profilesError } = await admin
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", [...new Set(reviews.map((r) => r.user_id))]);
+  if (profilesError) throw profilesError;
+
+  const nameById = new Map(profiles.map((p) => [p.id, p.full_name]));
+
+  return reviews.map(({ products, ...review }) => ({
+    ...review,
+    reviewerName: firstName(nameById.get(review.user_id)) ?? "Verified buyer",
+    productName: products?.name ?? "Deleted product",
+    productSlug: products?.slug ?? "",
+  }));
 }
 
 function firstName(fullName: string | undefined | null): string | null {

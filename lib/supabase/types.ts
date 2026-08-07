@@ -42,6 +42,8 @@ export type Product = {
   compare_at_paise: number | null;
   ready_to_ship: boolean;
   active: boolean;
+  sku: string | null;
+  barcode: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -155,6 +157,8 @@ export type Coupon = {
   created_at: string;
 };
 
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
 export type Review = {
   id: string;
   product_id: string;
@@ -163,6 +167,8 @@ export type Review = {
   rating: number;
   title: string;
   body: string;
+  status: ReviewStatus;
+  admin_reply: string | null;
   created_at: string;
 };
 
@@ -193,6 +199,26 @@ export type HomepageSettings = {
   updated_at: string;
 };
 
+export type StoreSettings = {
+  id: true;
+  legal_name: string;
+  support_email: string;
+  support_phone: string;
+  address: string;
+  gstin: string | null;
+  return_window_days: number;
+  free_shipping_above_paise: number;
+  flat_shipping_paise: number;
+  updated_at: string;
+};
+
+export type OrderStatusHistory = {
+  id: string;
+  order_id: string;
+  status: OrderStatus;
+  created_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -219,6 +245,8 @@ export type Database = {
       product_answers: Table<ProductAnswer>;
       tryon_usage: Table<TryonUsage>;
       homepage_settings: Table<HomepageSettings>;
+      store_settings: Table<StoreSettings>;
+      order_status_history: Table<OrderStatusHistory>;
     };
     Views: Record<never, never>;
     Functions: {

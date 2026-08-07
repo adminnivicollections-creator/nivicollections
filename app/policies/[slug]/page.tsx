@@ -1,26 +1,28 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { POLICIES, getPolicy } from "@/lib/policies";
-import { BRAND, BUSINESS } from "@/lib/config";
+import { POLICY_META, getPolicy } from "@/lib/policies";
+import { getStoreSettings } from "@/lib/settings";
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
-  return POLICIES.map((p) => ({ slug: p.slug }));
+  return POLICY_META.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/policies/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const policy = getPolicy(slug);
-  if (!policy) return { title: "Not found" };
-  return { title: policy.title, description: policy.summary };
+  const meta = POLICY_META.find((p) => p.slug === slug);
+  return meta ? { title: meta.title } : { title: "Not found" };
 }
 
 export default async function PolicyPage({
   params,
 }: PageProps<"/policies/[slug]">) {
   const { slug } = await params;
-  const policy = getPolicy(slug);
+  const settings = await getStoreSettings();
+  const policy = getPolicy(slug, settings);
   if (!policy) notFound();
 
   return (
@@ -48,11 +50,11 @@ export default async function PolicyPage({
       </div>
 
       <footer className="mt-16 border-t border-ink/10 pt-8 text-sm leading-relaxed text-ink/60">
-        <p className="text-ink">{BUSINESS.legalEntity}</p>
-        <p className="mt-1 whitespace-pre-line">{BUSINESS.address}</p>
-        <p className="mt-1">{BUSINESS.phone}</p>
-        <p className="mt-1">{BRAND.email}</p>
-        {BUSINESS.gstin && <p className="mt-1">GSTIN: {BUSINESS.gstin}</p>}
+        <p className="text-ink">{settings.legal_name}</p>
+        <p className="mt-1 whitespace-pre-line">{settings.address}</p>
+        <p className="mt-1">{settings.support_phone}</p>
+        <p className="mt-1">{settings.support_email}</p>
+        {settings.gstin && <p className="mt-1">GSTIN: {settings.gstin}</p>}
       </footer>
     </article>
   );

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatINR } from "@/lib/config";
 import { trackShipment } from "@/lib/shiprocket";
-import type { Order, OrderItem } from "@/lib/supabase/types";
+import type { Order, OrderItem, OrderStatusHistory } from "@/lib/supabase/types";
 import { updateOrder } from "../actions";
 import { OrderForm } from "./OrderForm";
 
@@ -26,9 +26,17 @@ export default async function AdminOrderPage({
   const a = order.shipping_address;
   const action = updateOrder.bind(null, order.id);
 
-  const shipment = order.tracking_number
-    ? await trackShipment(order.tracking_number).catch(() => null)
-    : null;
+  const [shipment, { data: history }] = await Promise.all([
+    order.tracking_number
+      ? trackShipment(order.tracking_number).catch(() => null)
+      : Promise.resolve(null),
+    createAdminClient()
+      .from("order_status_history")
+      .select("*")
+      .eq("order_id", order.id)
+      .order("created_at", { ascending: true })
+      .overrideTypes<OrderStatusHistory[]>(),
+  ]);
 
   return (
     <div className="py-10">
@@ -151,6 +159,24 @@ export default async function AdminOrderPage({
             <p className="mt-8 text-xs text-ink/40">
               Razorpay payment: {order.razorpay_payment_id}
             </p>
+          )}
+
+          {history && history.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-[11px] uppercase tracking-[0.2em] text-ink/60">
+                Timeline
+              </h3>
+              <ul className="mt-4 space-y-2 text-sm">
+                {history.map((h) => (
+                  <li key={h.id} className="flex justify-between gap-4">
+                    <span className="text-ink">{h.status.replace("_", " ")}</span>
+                    <span className="text-ink/40">
+                      {new Date(h.created_at).toLocaleString("en-IN")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
 

@@ -1,12 +1,16 @@
 import Link from "next/link";
-import { BRAND, BUSINESS } from "@/lib/config";
+import { BRAND } from "@/lib/config";
+import { getStoreSettings } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Contact Us",
   description: `Reach ${BRAND.legalName} by email or phone.`,
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getStoreSettings();
+
   return (
     <div className="mx-auto max-w-3xl px-5 py-16">
       <h1 className="font-serif text-4xl font-light text-ink">Contact Us</h1>
@@ -20,8 +24,11 @@ export default function ContactPage() {
             Email
           </dt>
           <dd className="mt-2">
-            <a href={`mailto:${BRAND.email}`} className="text-ink underline">
-              {BRAND.email}
+            <a
+              href={`mailto:${settings.support_email}`}
+              className="text-ink underline"
+            >
+              {settings.support_email}
             </a>
           </dd>
         </div>
@@ -30,7 +37,7 @@ export default function ContactPage() {
           <dt className="text-[11px] uppercase tracking-[0.2em] text-gold">
             Phone
           </dt>
-          <dd className="mt-2 text-ink">{BUSINESS.phone}</dd>
+          <dd className="mt-2 text-ink">{settings.support_phone}</dd>
         </div>
 
         <div>
@@ -45,18 +52,18 @@ export default function ContactPage() {
             Registered address
           </dt>
           <dd className="mt-2 whitespace-pre-line text-ink">
-            {BUSINESS.legalEntity}
+            {settings.legal_name}
             {"\n"}
-            {BUSINESS.address}
+            {settings.address}
           </dd>
         </div>
 
-        {BUSINESS.gstin && (
+        {settings.gstin && (
           <div>
             <dt className="text-[11px] uppercase tracking-[0.2em] text-gold">
               GSTIN
             </dt>
-            <dd className="mt-2 text-ink">{BUSINESS.gstin}</dd>
+            <dd className="mt-2 text-ink">{settings.gstin}</dd>
           </div>
         )}
       </dl>

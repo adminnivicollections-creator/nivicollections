@@ -20,16 +20,21 @@ const GROUPS: { label: string; links: { href: string; label: string }[] }[] = [
     label: "Sales",
     links: [
       { href: "/admin/orders", label: "Orders" },
+      { href: "/admin/customers", label: "Customers" },
       { href: "/admin/coupons", label: "Coupons" },
     ],
   },
   {
     label: "Site",
-    links: [{ href: "/admin/homepage", label: "Homepage" }],
+    links: [
+      { href: "/admin/homepage", label: "Homepage" },
+      { href: "/admin/settings", label: "Settings" },
+    ],
   },
   {
     label: "Engagement",
     links: [
+      { href: "/admin/reviews", label: "Reviews" },
       { href: "/admin/questions", label: "Questions" },
       { href: "/admin/subscribers", label: "Launch list" },
     ],

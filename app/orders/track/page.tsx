@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatINR } from "@/lib/config";
 import { trackShipment, type ShipmentStatus } from "@/lib/shiprocket";
-import type { Order, OrderItem } from "@/lib/supabase/types";
+import type { Order, OrderItem, OrderStatusHistory } from "@/lib/supabase/types";
 
 export const metadata = { title: "Track your order" };
 
@@ -38,6 +38,17 @@ export default async function TrackOrderPage({
       console.error("Shiprocket tracking lookup failed", e);
     }
   }
+
+  const history = order
+    ? (
+        await createAdminClient()
+          .from("order_status_history")
+          .select("*")
+          .eq("order_id", order.id)
+          .order("created_at", { ascending: true })
+          .overrideTypes<OrderStatusHistory[]>()
+      ).data
+    : null;
 
   const field =
     "mt-1 w-full border border-ink/20 bg-transparent px-4 py-3 text-sm outline-none focus:border-ink";
@@ -158,6 +169,19 @@ export default async function TrackOrderPage({
                 </dl>
               )}
             </div>
+          )}
+
+          {history && history.length > 0 && (
+            <ul className="mt-6 space-y-2 border-t border-ink/10 pt-4 text-sm">
+              {history.map((h) => (
+                <li key={h.id} className="flex justify-between gap-4">
+                  <span className="text-ink/70">{h.status.replace("_", " ")}</span>
+                  <span className="text-ink/40">
+                    {new Date(h.created_at).toLocaleDateString("en-IN")}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       )}
