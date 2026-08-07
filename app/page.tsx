@@ -3,16 +3,18 @@ import Image from "next/image";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { getWishlistProductIds } from "@/lib/wishlist";
 import { getHomepageHeroUrl } from "@/lib/homepage";
+import { getStoreSettings } from "@/lib/settings";
 import { imageUrl, BRAND } from "@/lib/config";
 import { ProductCard } from "@/components/ProductCard";
 import { TrustBar } from "@/components/TrustBar";
 
 export default async function Home() {
-  const [categories, products, wishlist, customHero] = await Promise.all([
+  const [categories, products, wishlist, customHero, settings] = await Promise.all([
     getCategories(),
     getProducts({ limit: 8 }),
     getWishlistProductIds(),
     getHomepageHeroUrl(),
+    getStoreSettings(),
   ]);
 
   const shopHref = categories[0]
@@ -69,7 +71,10 @@ export default async function Home() {
         </div>
       </section>
 
-      <TrustBar />
+      <TrustBar
+        returnWindowDays={settings.return_window_days}
+        freeShippingAbovePaise={settings.free_shipping_above_paise}
+      />
 
       {categories.length > 1 && (
         <section className="mx-auto max-w-7xl px-5 py-24">

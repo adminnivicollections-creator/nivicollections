@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getCategories } from "@/lib/catalog";
 import { createClient } from "@/lib/supabase/server";
+import { getStoreSettings } from "@/lib/settings";
 import { BRAND } from "@/lib/config";
 import { BottomNav } from "@/components/BottomNav";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -43,9 +44,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const supabase = await createClient();
-  const [categories, { data: claims }] = await Promise.all([
+  const [categories, { data: claims }, settings] = await Promise.all([
     getCategories(),
     supabase.auth.getClaims(),
+    getStoreSettings(),
   ]);
   const signedIn = Boolean(claims?.claims);
   const shopHref = categories[0]
@@ -63,7 +65,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <Footer categories={categories} />
           <BottomNav shopHref={shopHref} signedIn={signedIn} />
-          <WhatsAppButton />
+          <WhatsAppButton phone={settings.support_phone} />
           <CartDrawer />
         </CartProvider>
       </body>

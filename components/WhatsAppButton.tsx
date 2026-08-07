@@ -1,10 +1,8 @@
-import { BUSINESS } from "@/lib/config";
-
 // A plain link, not a client component — nothing here needs interactivity.
 // Positioned to clear the mobile bottom tab bar (which BottomNav renders at
 // h-auto, roughly 64-72px including label + safe-area padding).
-export function WhatsAppButton() {
-  const href = `https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent(
+export function WhatsAppButton({ phone }: { phone: string }) {
+  const href = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(
     "Hi! I have a question about a saree on your website.",
   )}`;
 

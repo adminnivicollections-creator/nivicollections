@@ -50,7 +50,10 @@ export async function createCoupon(
     code: d.code,
     description: d.description,
     discount_type: d.discountType,
-    discount_value: d.discountValue,
+    // Percent is unit-less (1-100); flat is stored in paise like every other
+    // money column, but the form collects it in rupees.
+    discount_value:
+      d.discountType === "flat" ? Math.round(d.discountValue * 100) : d.discountValue,
     min_subtotal_paise: Math.round(d.minSubtotalRupees * 100),
     max_discount_paise:
       d.maxDiscountRupees !== undefined

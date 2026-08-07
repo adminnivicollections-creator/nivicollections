@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
-import { formatINR, imageUrl, shippingFor } from "@/lib/config";
+import { formatINR, imageUrl } from "@/lib/config";
 
 type RazorpayInstance = { open: () => void };
 declare global {
@@ -27,7 +27,13 @@ function loadRazorpay(): Promise<void> {
   });
 }
 
-export function CheckoutForm() {
+export function CheckoutForm({
+  freeShippingAbovePaise,
+  flatShippingPaise,
+}: {
+  freeShippingAbovePaise: number;
+  flatShippingPaise: number;
+}) {
   const router = useRouter();
   const { lines, subtotalPaise, clear, hydrated } = useCart();
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +61,8 @@ export function CheckoutForm() {
   }
 
   const discount = coupon?.discountPaise ?? 0;
-  const shipping = shippingFor(subtotalPaise);
+  const shipping =
+    subtotalPaise <= 0 || subtotalPaise >= freeShippingAbovePaise ? 0 : flatShippingPaise;
   const total = subtotalPaise - discount + shipping;
 
   async function applyCoupon() {

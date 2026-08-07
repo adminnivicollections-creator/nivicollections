@@ -1,4 +1,4 @@
-import { SHIPPING, BUSINESS, formatINR } from "@/lib/config";
+import { formatINR } from "@/lib/config";
 
 const ICONS = {
   shield: (
@@ -28,12 +28,20 @@ function Icon({ name }: { name: keyof typeof ICONS }) {
   );
 }
 
-export function TrustBar({ dark = false }: { dark?: boolean }) {
+export function TrustBar({
+  dark = false,
+  returnWindowDays,
+  freeShippingAbovePaise,
+}: {
+  dark?: boolean;
+  returnWindowDays: number;
+  freeShippingAbovePaise: number;
+}) {
   const items: { icon: keyof typeof ICONS; label: string }[] = [
     { icon: "shield", label: "Secure payments via Razorpay" },
-    { icon: "returns", label: `${BUSINESS.returnWindowDays}-day easy returns` },
+    { icon: "returns", label: `${returnWindowDays}-day easy returns` },
     { icon: "badge", label: "Authentic, handcrafted pieces" },
-    { icon: "truck", label: `Free shipping above ${formatINR(SHIPPING.freeAbovePaise)}` },
+    { icon: "truck", label: `Free shipping above ${formatINR(freeShippingAbovePaise)}` },
   ];
 
   const text = dark ? "text-[#f3e6cc]" : "text-ink";
