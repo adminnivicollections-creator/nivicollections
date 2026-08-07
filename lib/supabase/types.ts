@@ -262,6 +262,23 @@ export type Database = {
         Args: { p_user_id: string; p_max: number };
         Returns: number;
       };
+      create_order: {
+        Args: {
+          p_user_id: string | null;
+          p_email: string;
+          p_phone: string;
+          p_shipping_address: Record<string, unknown>;
+          p_subtotal_paise: number;
+          p_shipping_paise: number;
+          p_coupon_code: string;
+          p_discount_paise: number;
+          p_total_paise: number;
+          p_notes: string;
+          p_gift_wrap: boolean;
+          p_items: Record<string, unknown>[];
+        };
+        Returns: { id: string; order_number: string };
+      };
     };
     Enums: { order_status: OrderStatus };
     CompositeTypes: Record<never, never>;

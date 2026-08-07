@@ -159,41 +159,31 @@ export async function POST(request: NextRequest) {
   const { data: claims } = await supabase.auth.getClaims();
   const userId = (claims?.claims?.sub as string | undefined) ?? null;
 
-  const { data: order, error: orderError } = await admin
-    .from("orders")
-    .insert({
-      user_id: userId,
-      email,
-      phone,
-      shipping_address: address,
-      subtotal_paise: subtotal,
-      shipping_paise: shipping,
-      coupon_code: appliedCode,
-      discount_paise: discount,
-      total_paise: total,
-      notes,
-      gift_wrap: giftWrap,
-      status: "pending_payment",
-    })
-    .select("id, order_number")
-    .single();
+  // Order + items are created atomically via RPC — if the items insert
+  // failed after a separate orders insert, a network blip would leave a
+  // ghost order with no items and no way to know what was in it.
+  const { data: created, error: orderError } = await admin.rpc("create_order", {
+    p_user_id: userId,
+    p_email: email,
+    p_phone: phone,
+    p_shipping_address: address,
+    p_subtotal_paise: subtotal,
+    p_shipping_paise: shipping,
+    p_coupon_code: appliedCode,
+    p_discount_paise: discount,
+    p_total_paise: total,
+    p_notes: notes,
+    p_gift_wrap: giftWrap,
+    p_items: lines,
+  });
 
-  if (orderError || !order) {
+  if (orderError || !created) {
     return NextResponse.json(
       { error: "Could not create your order." },
       { status: 500 },
     );
   }
-
-  const { error: itemsError } = await admin
-    .from("order_items")
-    .insert(lines.map((l) => ({ ...l, order_id: order.id })));
-  if (itemsError) {
-    return NextResponse.json(
-      { error: "Could not save your order items." },
-      { status: 500 },
-    );
-  }
+  const order = created as { id: string; order_number: string };
 
   let razorpayOrder;
   try {
