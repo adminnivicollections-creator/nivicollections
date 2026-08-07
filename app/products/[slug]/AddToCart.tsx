@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
+import { gaEvent } from "@/lib/gtag";
 import type { ProductVariant } from "@/lib/supabase/types";
 
 export function AddToCart({
@@ -83,6 +84,13 @@ export function AddToCart({
             size: selected.size,
             pricePaise,
             imagePath,
+          });
+          gaEvent("add_to_cart", {
+            currency: "INR",
+            value: pricePaise / 100,
+            items: [
+              { item_id: productId, item_name: name, price: pricePaise / 100, quantity: 1 },
+            ],
           });
           setAdded(true);
         }}

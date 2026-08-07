@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart";
 import { formatINR, imageUrl } from "@/lib/config";
+import { gaEvent } from "@/lib/gtag";
 
 type RazorpayInstance = { open: () => void };
 declare global {
@@ -43,6 +44,24 @@ export function CheckoutForm({
   const [coupon, setCoupon] = useState<{ code: string; discountPaise: number } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
+
+  // Fires once per checkout visit, not on every re-render as quantities or
+  // the coupon field change.
+  const firedBeginCheckout = useRef(false);
+  useEffect(() => {
+    if (!hydrated || lines.length === 0 || firedBeginCheckout.current) return;
+    firedBeginCheckout.current = true;
+    gaEvent("begin_checkout", {
+      currency: "INR",
+      value: subtotalPaise / 100,
+      items: lines.map((l) => ({
+        item_id: l.productId,
+        item_name: l.name,
+        price: l.pricePaise / 100,
+        quantity: l.qty,
+      })),
+    });
+  }, [hydrated, lines, subtotalPaise]);
 
   if (!hydrated) return <div className="py-20" aria-busy="true" />;
 
@@ -145,7 +164,20 @@ export function CheckoutForm({
         theme: { color: "#c59e5a" },
         handler: () => {
           // The webhook is what actually marks the order paid; this only
-          // moves the customer along.
+          // moves the customer along. GA4 dedupes purchase events by
+          // transaction_id, so a stray double-fire here can't double-count
+          // revenue in reporting even if it somehow happened.
+          gaEvent("purchase", {
+            currency: "INR",
+            value: data.amountPaise / 100,
+            transaction_id: data.orderNumber,
+            items: lines.map((l) => ({
+              item_id: l.productId,
+              item_name: l.name,
+              price: l.pricePaise / 100,
+              quantity: l.qty,
+            })),
+          });
           clear();
           router.push(`/checkout/success?order=${data.orderNumber}`);
         },

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart";
@@ -11,6 +12,8 @@ import { BRAND } from "@/lib/config";
 import { BottomNav } from "@/components/BottomNav";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { CartDrawer } from "@/components/CartDrawer";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { GAPageViewTracker } from "@/components/GAPageViewTracker";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -61,6 +64,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${cormorant.variable} ${jost.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <GAPageViewTracker />
+        </Suspense>
         <CartProvider>
           <Header categories={categories} signedIn={signedIn} />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
