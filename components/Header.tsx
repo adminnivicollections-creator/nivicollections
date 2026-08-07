@@ -6,6 +6,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { BRAND } from "@/lib/config";
+import { SearchBox } from "./SearchBox";
 import type { Category } from "@/lib/supabase/types";
 
 export function Header({
@@ -69,6 +70,7 @@ export function Header({
         </nav>
 
         <div className="ml-auto flex items-center gap-5">
+          <SearchBox />
           <Link
             href={signedIn ? "/account" : "/login"}
             aria-label={signedIn ? "Account" : "Sign in"}

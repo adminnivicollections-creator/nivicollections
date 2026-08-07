@@ -111,6 +111,29 @@ export function isSoldOut(p: ProductWithMedia): boolean {
   return p.product_variants.every((v) => v.stock <= 0);
 }
 
+export async function searchProducts(
+  q: string,
+  limit = 24,
+): Promise<ProductWithMedia[]> {
+  // PostgREST's `or()` filter string uses "," and "()" as syntax, so strip
+  // them from user input rather than trying to escape them correctly.
+  const safe = q.replace(/[%,()]/g, " ").trim();
+  if (!safe) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("active", true)
+    .or(`name.ilike.%${safe}%,description.ilike.%${safe}%`)
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .overrideTypes<ProductWithMedia[]>();
+
+  if (error) throw error;
+  return (data ?? []).map(sortMedia);
+}
+
 export async function getProductsByIds(
   ids: string[],
 ): Promise<ProductWithMedia[]> {
