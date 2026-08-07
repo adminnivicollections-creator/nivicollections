@@ -5,13 +5,15 @@ import type { Order, OrderStatus } from "@/lib/supabase/types";
 import type { ActionResult } from "../actions";
 
 // Mirrors NEXT_STATUS in actions.ts so the dropdown only offers moves the
-// server will accept. The server is still the one enforcing it.
+// server will accept. The server is still the one enforcing it. "refunded"
+// is deliberately unreachable here — see the Refund section below, which is
+// the only path that can actually set it (after Razorpay confirms money moved).
 const NEXT_STATUS: Record<OrderStatus, OrderStatus[]> = {
   pending_payment: ["cancelled"],
-  paid: ["packed", "cancelled", "refunded"],
+  paid: ["packed", "cancelled"],
   packed: ["shipped", "cancelled"],
   shipped: ["delivered"],
-  delivered: ["refunded"],
+  delivered: [],
   cancelled: [],
   refunded: [],
 };

@@ -3,9 +3,10 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatINR } from "@/lib/config";
 import { trackShipment } from "@/lib/shiprocket";
-import type { Order, OrderItem, OrderStatusHistory } from "@/lib/supabase/types";
-import { updateOrder } from "../actions";
+import type { Order, OrderItem, OrderStatusHistory, Refund } from "@/lib/supabase/types";
+import { updateOrder, refundOrder } from "../actions";
 import { OrderForm } from "./OrderForm";
+import { RefundForm } from "./RefundForm";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +26,9 @@ export default async function AdminOrderPage({
 
   const a = order.shipping_address;
   const action = updateOrder.bind(null, order.id);
+  const refundAction = refundOrder.bind(null, order.id);
 
-  const [shipment, { data: history }] = await Promise.all([
+  const [shipment, { data: history }, { data: refunds }] = await Promise.all([
     order.tracking_number
       ? trackShipment(order.tracking_number).catch(() => null)
       : Promise.resolve(null),
@@ -36,7 +38,18 @@ export default async function AdminOrderPage({
       .eq("order_id", order.id)
       .order("created_at", { ascending: true })
       .overrideTypes<OrderStatusHistory[]>(),
+    createAdminClient()
+      .from("refunds")
+      .select("*")
+      .eq("order_id", order.id)
+      .order("created_at", { ascending: false })
+      .overrideTypes<Refund[]>(),
   ]);
+
+  const refundedPaise = (refunds ?? []).reduce((sum, r) => sum + r.amount_paise, 0);
+  const refundablePaise = order.razorpay_payment_id
+    ? order.total_paise - refundedPaise
+    : 0;
 
   return (
     <div className="py-10">
@@ -180,7 +193,14 @@ export default async function AdminOrderPage({
           )}
         </div>
 
-        <OrderForm action={action} order={order} />
+        <div className="space-y-8">
+          <OrderForm action={action} order={order} />
+          <RefundForm
+            action={refundAction}
+            refundablePaise={refundablePaise}
+            refunds={refunds ?? []}
+          />
+        </div>
       </div>
     </div>
   );

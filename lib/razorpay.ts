@@ -37,6 +37,44 @@ export async function createRazorpayOrder(opts: {
 }
 
 /**
+ * Refunds part or all of a captured payment. Razorpay is the authority on
+ * how much of a payment remains refundable — it rejects a request that
+ * exceeds what's left on the payment, which is what actually protects
+ * against a double-refund race, not anything on our side.
+ */
+export async function createRazorpayRefund(opts: {
+  paymentId: string;
+  amountPaise: number;
+  notes?: Record<string, string>;
+}): Promise<{ id: string; status: string }> {
+  const res = await fetch(`${API}/payments/${opts.paymentId}/refund`, {
+    method: "POST",
+    headers: {
+      Authorization: authHeader(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount: opts.amountPaise,
+      speed: "normal",
+      notes: opts.notes,
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    let message = text;
+    try {
+      message = JSON.parse(text)?.error?.description ?? text;
+    } catch {
+      // Not JSON — use the raw body.
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
+/**
  * Verifies a webhook body against the shared secret.
  * Timing-safe, and returns false rather than throwing on a malformed header.
  */

@@ -219,6 +219,15 @@ export type OrderStatusHistory = {
   created_at: string;
 };
 
+export type Refund = {
+  id: string;
+  order_id: string;
+  razorpay_refund_id: string;
+  amount_paise: number;
+  reason: string;
+  created_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -247,6 +256,7 @@ export type Database = {
       homepage_settings: Table<HomepageSettings>;
       store_settings: Table<StoreSettings>;
       order_status_history: Table<OrderStatusHistory>;
+      refunds: Table<Refund>;
     };
     Views: Record<never, never>;
     Functions: {
