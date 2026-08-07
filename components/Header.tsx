@@ -27,12 +27,12 @@ export function Header({
         Free shipping on orders above ₹1,500
       </div>
 
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-2">
+      <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-2">
         <button
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
           aria-expanded={open}
-          className="w-28 text-left text-sm tracking-wide md:invisible"
+          className="text-sm tracking-wide md:hidden"
         >
           {open ? "Close" : "Menu"}
         </button>
@@ -50,41 +50,53 @@ export function Header({
           />
         </Link>
 
-        <div className="flex w-28 items-center justify-end gap-4 text-sm">
+        <nav className="hidden flex-1 md:block">
+          <ul className="flex flex-wrap items-center gap-x-8 gap-y-2">
+            {categories.map((c) => (
+              <li key={c.slug}>
+                <Link
+                  href={`/collections/${c.slug}`}
+                  aria-current={isActiveCategory(c.slug) ? "page" : undefined}
+                  className={`whitespace-nowrap text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-gold ${
+                    isActiveCategory(c.slug) ? "text-gold" : "text-ink/80"
+                  }`}
+                >
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="ml-auto flex items-center gap-5">
           <Link
             href={signedIn ? "/account" : "/login"}
+            aria-label={signedIn ? "Account" : "Sign in"}
             className="hidden text-ink/70 hover:text-ink sm:block"
           >
-            {signedIn ? "Account" : "Sign in"}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
           </Link>
           <button
             type="button"
             onClick={openDrawer}
-            className="text-ink"
+            aria-label="Cart"
+            className="relative text-ink/70 hover:text-ink"
           >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+              <path d="M6 8h12l1 12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1L6 8Zm3-1V6a3 3 0 0 1 6 0v1" />
+            </svg>
             {/* Suppress the count until hydration so SSR and client agree. */}
-            Cart{hydrated ? ` (${count})` : ""}
+            {hydrated && count > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-medium text-cream">
+                {count}
+              </span>
+            )}
           </button>
         </div>
       </div>
-
-      <nav className="hidden border-t border-ink/10 md:block">
-        <ul className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-8 gap-y-2 px-5 py-2.5">
-          {categories.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/collections/${c.slug}`}
-                aria-current={isActiveCategory(c.slug) ? "page" : undefined}
-                className={`whitespace-nowrap text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-gold ${
-                  isActiveCategory(c.slug) ? "text-gold" : "text-ink/80"
-                }`}
-              >
-                {c.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
 
       {/* Account/Sign in and Cart are deliberately left out here — BottomNav
           already covers both at this exact breakpoint, so repeating them
