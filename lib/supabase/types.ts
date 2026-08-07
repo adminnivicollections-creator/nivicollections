@@ -230,6 +230,21 @@ export type Refund = {
   created_at: string;
 };
 
+export type ReturnReason = "defective" | "wrong_item" | "changed_mind" | "other";
+export type ReturnStatus = "pending" | "approved" | "rejected";
+
+export type ReturnRequest = {
+  id: string;
+  order_id: string;
+  reason: ReturnReason;
+  description: string;
+  photo_paths: string[];
+  status: ReturnStatus;
+  admin_note: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -259,6 +274,7 @@ export type Database = {
       store_settings: Table<StoreSettings>;
       order_status_history: Table<OrderStatusHistory>;
       refunds: Table<Refund>;
+      return_requests: Table<ReturnRequest>;
     };
     Views: Record<never, never>;
     Functions: {
