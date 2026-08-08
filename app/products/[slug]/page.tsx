@@ -124,9 +124,7 @@ export default async function ProductPage({
             </p>
 
             {product.description && (
-              <p className="mt-8 leading-relaxed text-[#f3e6cc]/70">
-                {product.description}
-              </p>
+              <Description text={product.description} />
             )}
 
             <div id="add-to-cart">
@@ -218,6 +216,27 @@ export default async function ProductPage({
           }}
         />
       </div>
+    </div>
+  );
+}
+
+function Description({ text }: { text: string }) {
+  const parts = text.split(/\s*\*\s*/);
+  const prose = parts[0]?.trim();
+  const bullets = parts.slice(1).filter((b) => b.trim());
+
+  if (bullets.length === 0) {
+    return <p className="mt-8 leading-relaxed text-[#f3e6cc]/70">{text}</p>;
+  }
+
+  return (
+    <div className="mt-8 space-y-4 text-[#f3e6cc]/70">
+      {prose && <p className="leading-relaxed">{prose}</p>}
+      <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
+        {bullets.map((b, i) => (
+          <li key={i}>{b}</li>
+        ))}
+      </ul>
     </div>
   );
 }
