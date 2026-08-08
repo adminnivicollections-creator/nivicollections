@@ -13,7 +13,7 @@ import { WishlistHeart } from "@/components/WishlistHeart";
 import { ShareButton } from "@/components/ShareButton";
 import { Stars } from "@/components/Stars";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
-import { TryOnWidget } from "@/components/TryOnWidget";
+// import { TryOnWidget } from "@/components/TryOnWidget";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AddToCart } from "./AddToCart";
 import { Reviews } from "./Reviews";
@@ -159,12 +159,6 @@ export default async function ProductPage({
             </dl>
           </div>
         </div>
-
-        <TryOnWidget
-          productId={product.id}
-          signedIn={Boolean(userId)}
-          path={path}
-        />
 
         {frequentlyBoughtWith.length > 0 && (
           <section className="mt-28">
