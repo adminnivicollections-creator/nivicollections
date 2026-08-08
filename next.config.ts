@@ -28,6 +28,7 @@ async function headers() {
 
 const nextConfig: NextConfig = {
   turbopack: { root: __dirname },
+  experimental: { serverActions: { bodySizeLimit: "6mb" } },
   headers,
   images: supabaseHost
     ? {
