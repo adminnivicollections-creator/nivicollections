@@ -14,6 +14,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { CartDrawer } from "@/components/CartDrawer";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { GAPageViewTracker } from "@/components/GAPageViewTracker";
+import { MicrosoftClarity } from "@/components/MicrosoftClarity";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -65,6 +66,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col">
         <GoogleAnalytics />
+        <MicrosoftClarity />
         <Suspense fallback={null}>
           <GAPageViewTracker />
         </Suspense>
