@@ -35,7 +35,7 @@ export async function getProductQuestions(
   return questions.map(({ product_answers, ...q }) => ({
     ...q,
     askerName: firstName(nameById.get(q.user_id)) ?? "A shopper",
-    answer: product_answers[0] ?? null,
+    answer: product_answers?.[0] ?? null,
   }));
 }
 
@@ -66,7 +66,7 @@ async function hydrateAdminQuestions(
   return questions.map(({ product_answers, products, ...q }) => ({
     ...q,
     askerName: firstName(nameById.get(q.user_id)) ?? "A shopper",
-    answer: product_answers[0] ?? null,
+    answer: product_answers?.[0] ?? null,
     productName: products?.name ?? "Deleted product",
     productSlug: products?.slug ?? "",
   }));
@@ -90,7 +90,7 @@ export async function getUnansweredQuestions(): Promise<AdminQuestion[]> {
     .overrideTypes<RawAdminQuestion[]>();
 
   if (error) throw error;
-  const unanswered = questions.filter((q) => q.product_answers.length === 0);
+  const unanswered = questions.filter((q) => (q.product_answers?.length ?? 0) === 0);
   return hydrateAdminQuestions(admin, unanswered);
 }
 

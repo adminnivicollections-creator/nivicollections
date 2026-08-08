@@ -17,6 +17,22 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
   return (
     <form action={formAction} className="mt-8 max-w-xl space-y-6">
       <div>
+        <label htmlFor="announcementText" className={label}>
+          Announcement bar
+        </label>
+        <input
+          id="announcementText"
+          name="announcementText"
+          defaultValue={settings.announcement_text}
+          placeholder="Leave empty to hide the bar"
+          className={field}
+        />
+        <p className="mt-1 text-xs text-ink/40">
+          Shown at the top of every page. Leave empty to hide it.
+        </p>
+      </div>
+
+      <div>
         <label htmlFor="legalName" className={label}>
           Registered business name
         </label>

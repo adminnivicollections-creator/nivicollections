@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BRAND } from "@/lib/config";
 import { NewsletterForm } from "./NewsletterForm";
 import { POLICY_META } from "@/lib/policies";
@@ -12,9 +13,13 @@ export function Footer({ categories }: { categories: Category[] }) {
     <footer className="mt-24 hidden bg-ink text-cream md:block">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-3">
         <div>
-          <p className="font-serif text-xl uppercase tracking-[0.25em]">
-            {BRAND.name}
-          </p>
+          <Image
+            src="/images/nivicollectionslogo-transparent.png"
+            alt={BRAND.name}
+            width={403}
+            height={121}
+            className="h-10 w-auto"
+          />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream/70">
             Handcrafted Indian occasion wear, made in limited runs by artisans
             across the country.

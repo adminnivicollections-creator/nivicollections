@@ -44,6 +44,7 @@ export type Product = {
   active: boolean;
   sku: string | null;
   barcode: string | null;
+  publish_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -227,6 +228,7 @@ export type StoreSettings = {
   return_window_days: number;
   free_shipping_above_paise: number;
   flat_shipping_paise: number;
+  announcement_text: string;
   updated_at: string;
 };
 

@@ -57,7 +57,8 @@ export async function getProducts(opts?: {
   let query = supabase
     .from("products")
     .select(PRODUCT_SELECT)
-    .eq("active", true);
+    .eq("active", true)
+    .or("publish_at.is.null,publish_at.lte." + new Date().toISOString());
 
   query =
     opts?.sort === "price_asc"
@@ -94,11 +95,13 @@ export async function getProductCount(categorySlug?: string): Promise<number> {
         .from("products")
         .select("id, categories!inner(slug)", { count: "exact", head: true })
         .eq("active", true)
+        .or("publish_at.is.null,publish_at.lte." + new Date().toISOString())
         .eq("categories.slug", categorySlug)
     : supabase
         .from("products")
         .select("id", { count: "exact", head: true })
-        .eq("active", true);
+        .eq("active", true)
+        .or("publish_at.is.null,publish_at.lte." + new Date().toISOString());
 
   const { count, error } = await query;
   if (error) throw error;
@@ -114,6 +117,7 @@ export async function getProductBySlug(
     .select(PRODUCT_SELECT)
     .eq("slug", slug)
     .eq("active", true)
+    .or("publish_at.is.null,publish_at.lte." + new Date().toISOString())
     .maybeSingle()
     .overrideTypes<ProductWithMedia>();
 
@@ -130,6 +134,7 @@ export async function getRelatedProducts(
     .from("products")
     .select(PRODUCT_SELECT)
     .eq("active", true)
+    .or("publish_at.is.null,publish_at.lte." + new Date().toISOString())
     .eq("category_id", product.category_id)
     .neq("id", product.id)
     .limit(limit)
@@ -157,6 +162,7 @@ export async function searchProducts(
     .from("products")
     .select(PRODUCT_SELECT)
     .eq("active", true)
+    .or("publish_at.is.null,publish_at.lte." + new Date().toISOString())
     .or(`name.ilike.%${safe}%,description.ilike.%${safe}%`)
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -177,6 +183,7 @@ export async function getProductsByIds(
     .select(PRODUCT_SELECT)
     .in("id", ids)
     .eq("active", true)
+    .or("publish_at.is.null,publish_at.lte." + new Date().toISOString())
     .overrideTypes<ProductWithMedia[]>();
 
   if (error) throw error;

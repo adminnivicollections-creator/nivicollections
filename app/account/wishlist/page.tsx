@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { getWishlistProductIds } from "@/lib/wishlist";
 import { getProductsByIds, isSoldOut } from "@/lib/catalog";
 import { ProductCard } from "@/components/ProductCard";
+import { AddToCartFromWishlist } from "@/components/AddToCartFromWishlist";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Your wishlist" };
@@ -36,13 +37,28 @@ export default async function WishlistPage() {
         ) : (
           <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
             {products.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                wishlisted
-                path="/account/wishlist"
-                dark
-              />
+              <div key={p.id}>
+                <ProductCard
+                  product={p}
+                  wishlisted
+                  path="/account/wishlist"
+                  dark
+                />
+                {!isSoldOut(p) && (
+                  <AddToCartFromWishlist
+                    productId={p.id}
+                    slug={p.slug}
+                    name={p.name}
+                    pricePaise={p.price_paise}
+                    imagePath={p.product_images[0]?.storage_path ?? null}
+                    variants={p.product_variants.map((v) => ({
+                      id: v.id,
+                      size: v.size,
+                      stock: v.stock,
+                    }))}
+                  />
+                )}
+              </div>
             ))}
           </div>
         )}

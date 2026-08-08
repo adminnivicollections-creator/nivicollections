@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth";
 export type ActionResult = { error: string } | { ok: true } | undefined;
 
 const schema = z.object({
+  announcementText: z.string().trim().max(200).default(""),
   legalName: z.string().trim().min(2).max(200),
   supportEmail: z.email(),
   supportPhone: z.string().trim().min(6).max(20),
@@ -31,6 +32,7 @@ export async function updateStoreSettings(
   await requireAdmin();
 
   const parsed = schema.safeParse({
+    announcementText: formData.get("announcementText") ?? "",
     legalName: formData.get("legalName"),
     supportEmail: formData.get("supportEmail"),
     supportPhone: formData.get("supportPhone"),
@@ -46,6 +48,7 @@ export async function updateStoreSettings(
   const { error } = await createAdminClient()
     .from("store_settings")
     .update({
+      announcement_text: d.announcementText,
       legal_name: d.legalName,
       support_email: d.supportEmail,
       support_phone: d.supportPhone,

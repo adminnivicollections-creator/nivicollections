@@ -7,7 +7,7 @@ import { getReviewSummary } from "@/lib/reviews";
 import { getFrequentlyBoughtWith } from "@/lib/recommendations";
 import { getUserId } from "@/lib/auth";
 import { formatINR, imageUrl } from "@/lib/config";
-import { ProductMedia } from "@/components/ProductMedia";
+import { ProductGallery } from "@/components/ProductGallery";
 import { ProductCard } from "@/components/ProductCard";
 import { WishlistHeart } from "@/components/WishlistHeart";
 import { ShareButton } from "@/components/ShareButton";
@@ -57,7 +57,7 @@ export default async function ProductPage({
       getFrequentlyBoughtWith(product.id),
       getUserId(),
     ]);
-  const [hero, ...rest] = product.product_images;
+  const images = product.product_images;
 
   return (
     <div className="min-h-dvh bg-[#0b0906] px-5 py-12">
@@ -79,38 +79,14 @@ export default async function ProductPage({
         />
 
         <div className="mt-6 grid gap-12 md:grid-cols-2">
-          <div className="grid gap-3">
-            <div className="relative">
-              <ProductMedia
-                image={hero}
-                alt={product.name}
-                className="aspect-[3/4] w-full"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-              <div className="absolute right-3 top-3 flex flex-col gap-2">
-                <WishlistHeart
-                  productId={product.id}
-                  initialWishlisted={wishlist.has(product.id)}
-                  path={path}
-                />
-                <ShareButton name={product.name} path={path} />
-              </div>
-            </div>
-            {rest.length > 0 && (
-              <div className="grid grid-cols-2 gap-3">
-                {rest.slice(0, 4).map((img) => (
-                  <ProductMedia
-                    key={img.id}
-                    image={img}
-                    alt={product.name}
-                    className="aspect-square w-full"
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductGallery images={images} alt={product.name}>
+            <WishlistHeart
+              productId={product.id}
+              initialWishlisted={wishlist.has(product.id)}
+              path={path}
+            />
+            <ShareButton name={product.name} path={path} />
+          </ProductGallery>
 
           <div className="md:sticky md:top-40 md:self-start">
             {product.categories && (
@@ -159,7 +135,7 @@ export default async function ProductPage({
               slug={product.slug}
               name={product.name}
               pricePaise={product.price_paise}
-              imagePath={hero?.storage_path ?? null}
+              imagePath={images[0]?.storage_path ?? null}
               variants={product.product_variants}
               soldOut={isSoldOut(product)}
             />
@@ -238,7 +214,7 @@ export default async function ProductPage({
             slug: product.slug,
             name: product.name,
             pricePaise: product.price_paise,
-            imagePath: hero?.storage_path ?? null,
+            imagePath: images[0]?.storage_path ?? null,
           }}
         />
       </div>

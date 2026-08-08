@@ -54,7 +54,7 @@ export function SearchBox() {
         type="button"
         aria-label="Search"
         onClick={() => setOpen((v) => !v)}
-        className="text-ink/70 hover:text-ink"
+        className="text-cream/70 hover:text-cream"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
           <circle cx="11" cy="11" r="7" />

@@ -31,6 +31,7 @@ const productSchema = z.object({
   compareAtRupees: z.coerce.number().min(0).max(10_000_000).optional(),
   readyToShip: z.coerce.boolean().default(false),
   active: z.coerce.boolean().default(true),
+  publishAt: z.string().optional(),
   variants: z.array(sizeRow).min(1, "Add at least one size"),
 });
 
@@ -54,6 +55,7 @@ function readProductForm(formData: FormData) {
     compareAtRupees: formData.get("compareAtRupees") || undefined,
     readyToShip: formData.get("readyToShip") === "on",
     active: formData.get("active") === "on",
+    publishAt: (formData.get("publishAt") as string) || undefined,
     variants: parseVariants(formData),
   });
 }
@@ -97,6 +99,7 @@ export async function createProduct(
         : null,
       ready_to_ship: p.readyToShip,
       active: p.active,
+      publish_at: p.publishAt ? new Date(p.publishAt).toISOString() : null,
     })
     .select("id")
     .single();
@@ -149,6 +152,7 @@ export async function updateProduct(
         : null,
       ready_to_ship: p.readyToShip,
       active: p.active,
+      publish_at: p.publishAt ? new Date(p.publishAt).toISOString() : null,
     })
     .eq("id", productId);
 

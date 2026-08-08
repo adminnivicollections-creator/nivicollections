@@ -221,6 +221,26 @@ export function ProductForm({
         </button>
       </fieldset>
 
+      <div>
+        <label htmlFor="publishAt" className={label}>
+          Schedule publish (optional)
+        </label>
+        <input
+          id="publishAt"
+          name="publishAt"
+          type="datetime-local"
+          defaultValue={
+            product?.publish_at
+              ? product.publish_at.slice(0, 16)
+              : ""
+          }
+          className={field}
+        />
+        <p className="mt-1 text-xs text-ink/40">
+          Leave empty to publish immediately. Set a future date to schedule.
+        </p>
+      </div>
+
       <div className="space-y-3">
         <label className="flex items-center gap-3 text-sm text-ink">
           <input

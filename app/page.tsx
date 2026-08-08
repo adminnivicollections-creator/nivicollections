@@ -55,11 +55,6 @@ export default async function Home() {
         </div>
       </section>
 
-      <TrustBar
-        returnWindowDays={settings.return_window_days}
-        freeShippingAbovePaise={settings.free_shipping_above_paise}
-      />
-
       {categories.length > 1 && (
         <section className="mx-auto max-w-7xl px-5 py-24">
           <h2 className="text-center font-serif text-3xl font-light text-ink">
