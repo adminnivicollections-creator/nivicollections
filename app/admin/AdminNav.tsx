@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation";
 const GROUPS: { label: string; links: { href: string; label: string }[] }[] = [
   {
     label: "Overview",
-    links: [{ href: "/admin", label: "Dashboard" }],
+    links: [
+      { href: "/admin", label: "Dashboard" },
+      { href: "/admin/insights", label: "Insights" },
+    ],
   },
   {
     label: "Catalog",
