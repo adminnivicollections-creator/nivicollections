@@ -225,10 +225,34 @@ export async function deleteProduct(productId: string): Promise<void> {
   await requireAdmin();
   const supabase = createAdminClient();
 
-  // Hard delete would orphan order history, so retire the product instead.
   const { error } = await supabase
     .from("products")
     .update({ active: false })
+    .eq("id", productId);
+  if (error) throw error;
+
+  revalidatePath("/", "layout");
+  redirect("/admin/products");
+}
+
+export async function hardDeleteProduct(productId: string): Promise<void> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const { data: images } = await supabase
+    .from("product_images")
+    .select("storage_path")
+    .eq("product_id", productId);
+
+  if (images?.length) {
+    await supabase.storage
+      .from("product-images")
+      .remove(images.map((i) => i.storage_path));
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .delete()
     .eq("id", productId);
   if (error) throw error;
 

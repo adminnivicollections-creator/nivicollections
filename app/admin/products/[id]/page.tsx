@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ProductForm } from "../../ProductForm";
-import { updateProduct, deleteProduct, duplicateProduct } from "../../actions";
+import { updateProduct, deleteProduct, hardDeleteProduct, duplicateProduct } from "../../actions";
 import { ImageManager } from "./ImageManager";
+import { ConfirmForm } from "@/components/ConfirmForm";
 
 export const dynamic = "force-dynamic";
 
@@ -91,6 +92,24 @@ export default async function EditProductPage({
             Keeps the product for past orders, but removes it from the storefront.
           </p>
         </form>
+
+        <ConfirmForm
+          message="Permanently delete this product? This cannot be undone."
+          action={async () => {
+            "use server";
+            await hardDeleteProduct(product.id);
+          }}
+        >
+          <button
+            type="submit"
+            className="text-xs uppercase tracking-[0.15em] text-red-900"
+          >
+            Permanently delete
+          </button>
+          <p className="mt-2 max-w-xs text-xs text-ink/40">
+            Removes this product and all its images, variants, and data forever.
+          </p>
+        </ConfirmForm>
       </div>
     </>
   );
