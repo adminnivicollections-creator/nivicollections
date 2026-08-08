@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { gaEvent } from "@/lib/gtag";
 import type { ProductVariant } from "@/lib/supabase/types";
@@ -25,6 +25,16 @@ export function AddToCart({
   const { add } = useCart();
   const [selected, setSelected] = useState<ProductVariant | null>(null);
   const [added, setAdded] = useState(false);
+
+  // Fires once per product-page load, regardless of stock — this is the
+  // "views" half of the views-vs-purchases insight on the admin side.
+  useEffect(() => {
+    gaEvent("view_item", {
+      currency: "INR",
+      value: pricePaise / 100,
+      items: [{ item_id: productId, item_name: name, price: pricePaise / 100, quantity: 1 }],
+    });
+  }, [productId, name, pricePaise]);
 
   if (soldOut || variants.length === 0) {
     return (

@@ -13,7 +13,8 @@ const REASON_LABEL: Record<ReturnReason, string> = {
 };
 
 export default async function AdminInsightsPage() {
-  const { restockAlerts, slowMovers, wishlistGaps, returnThemes } = await getInsights();
+  const { restockAlerts, slowMovers, wishlistGaps, returnThemes, highViewsLowConversion } =
+    await getInsights();
 
   return (
     <div className="py-10">
@@ -139,6 +140,48 @@ export default async function AdminInsightsPage() {
                   <span className="text-ink/60">
                     {r.count} of {returnThemes.totalReturns}
                   </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section>
+          <h2 className="text-[11px] uppercase tracking-[0.2em] text-ink/60">
+            Getting looked at, not bought
+          </h2>
+          {highViewsLowConversion === null ? (
+            <p className="mt-4 text-sm text-ink/50">
+              Connect Google Analytics 4 credentials (
+              <code className="text-xs">GA4_PROPERTY_ID</code>,{" "}
+              <code className="text-xs">GA4_CLIENT_EMAIL</code>,{" "}
+              <code className="text-xs">GA4_PRIVATE_KEY</code>) to enable
+              this — it flags products people view often but almost never
+              buy, a price or photo problem rather than a taste problem.
+            </p>
+          ) : highViewsLowConversion.length === 0 ? (
+            <p className="mt-4 text-sm text-ink/50">
+              Nothing with enough views yet to judge conversion.
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10 text-sm">
+              {highViewsLowConversion.map((r) => (
+                <li key={r.itemId} className="py-3">
+                  <div className="flex justify-between">
+                    <Link
+                      href={`/admin/products/${r.itemId}`}
+                      className="hover:text-gold"
+                    >
+                      {r.itemName}
+                    </Link>
+                    <span className="text-ink/60">
+                      {(r.conversionRate * 100).toFixed(1)}% converted
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-ink/40">
+                    {r.views} views, {r.purchases} bought in the last 30 days
+                    — check the price or photos.
+                  </p>
                 </li>
               ))}
             </ul>

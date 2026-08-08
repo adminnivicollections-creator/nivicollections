@@ -20,7 +20,7 @@ export type GAItem = {
 };
 
 export function gaEvent(
-  name: "add_to_cart" | "begin_checkout" | "purchase",
+  name: "view_item" | "add_to_cart" | "begin_checkout" | "purchase",
   params: {
     currency: "INR";
     value: number;

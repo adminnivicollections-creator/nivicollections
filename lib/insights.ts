@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getViewsVsPurchases } from "@/lib/ga4";
 import type {
   Order,
   OrderItem,
@@ -16,6 +17,8 @@ const MS_PER_DAY = 86_400_000;
 // uses, rather than paginating full order history — good enough for
 // velocity/last-sale signals, revisit if order volume grows a lot.
 const ORDER_HISTORY_LIMIT = 500;
+const MIN_VIEWS_FOR_SIGNAL = 20;
+const LOW_CONVERSION_RATE = 0.02;
 
 export type RestockAlert = {
   variantId: string;
@@ -45,11 +48,22 @@ export type ReturnThemes = {
   byReason: { reason: ReturnReason; count: number }[];
 };
 
+export type HighViewsLowConversion = {
+  itemId: string;
+  itemName: string;
+  views: number;
+  purchases: number;
+  conversionRate: number;
+};
+
 export type Insights = {
   restockAlerts: RestockAlert[];
   slowMovers: SlowMover[];
   wishlistGaps: WishlistGap[];
   returnThemes: ReturnThemes;
+  // null when GA4 credentials aren't configured, as opposed to an empty
+  // array once configured but nothing crosses the threshold.
+  highViewsLowConversion: HighViewsLowConversion[] | null;
 };
 
 type VariantRow = ProductVariant & {
@@ -75,6 +89,7 @@ export async function getInsights(): Promise<Insights> {
     { data: orders, error: ordersError },
     { data: wishlists, error: wishlistError },
     { data: returns, error: returnsError },
+    ga4Rows,
   ] = await Promise.all([
     admin
       .from("product_variants")
@@ -94,6 +109,7 @@ export async function getInsights(): Promise<Insights> {
       .from("return_requests")
       .select("reason, created_at")
       .gte("created_at", new Date(now - RETURNS_WINDOW_DAYS * MS_PER_DAY).toISOString()),
+    getViewsVsPurchases(),
   ]);
 
   if (variantsError) throw variantsError;
@@ -214,5 +230,21 @@ export async function getInsights(): Promise<Insights> {
       .sort((a, b) => b.count - a.count),
   };
 
-  return { restockAlerts, slowMovers, wishlistGaps, returnThemes };
+  const highViewsLowConversion: HighViewsLowConversion[] | null =
+    ga4Rows === null
+      ? null
+      : ga4Rows
+          .filter((r) => r.itemId && r.views >= MIN_VIEWS_FOR_SIGNAL)
+          .map((r) => ({ ...r, conversionRate: r.purchases / r.views }))
+          .filter((r) => r.conversionRate < LOW_CONVERSION_RATE)
+          .sort((a, b) => b.views - a.views)
+          .slice(0, 8);
+
+  return {
+    restockAlerts,
+    slowMovers,
+    wishlistGaps,
+    returnThemes,
+    highViewsLowConversion,
+  };
 }
