@@ -59,8 +59,42 @@ export default async function ProductPage({
     ]);
   const images = product.product_images;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: images.map((img) => imageUrl(img.storage_path)),
+    url: `${siteUrl}${path}`,
+    brand: { "@type": "Brand", name: "Nivi Collections" },
+    offers: {
+      "@type": "Offer",
+      price: (product.price_paise / 100).toFixed(2),
+      priceCurrency: "INR",
+      availability: isSoldOut(product)
+        ? "https://schema.org/OutOfStock"
+        : "https://schema.org/InStock",
+      url: `${siteUrl}${path}`,
+      ...(product.compare_at_paise && {
+        priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+      }),
+    },
+    ...(reviewSummary.count > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: reviewSummary.average.toFixed(1),
+        reviewCount: reviewSummary.count,
+      },
+    }),
+  };
+
   return (
     <div className="min-h-dvh bg-[#0b0906] px-5 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="mx-auto max-w-7xl">
         <Breadcrumbs
           dark
